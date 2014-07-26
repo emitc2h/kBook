@@ -55,7 +55,26 @@ class CommandLine(cmd.Cmd):
 		Create a new chain
 		"""
 
-		log.info('Creating a new chain with name "%s"' % arg)
+		## Interpret arguments
+		arguments = arg.split(' ')
+		if len(arguments) != 2:
+			log.error('Must provide 2 arguments: type of chain and name')
+			return
+
+		chain_type = arguments[0]
+		chain_name = arguments[1]
+
+		if not chain_name.isalnum():
+			log.error('Please provide a chain name that is alphanumeric (example: \'mychain456\').')
+			return
+
+		if not (chain_type=='prun' or chain_type=='pathena-algo' or chain_type=='pathena-trf'):
+			log.error('Please provide of the the following chain types: \'prun\', \'pathena-algo\' or \'pathena-trf\'.')
+			return
+
+		self.book.create_chain(chain_name, chain_type)
+
+
 
 	## -------------------------------------------------------
 	def help_create(self):
@@ -63,7 +82,7 @@ class CommandLine(cmd.Cmd):
 		create documentation
 		"""
 
-		log.info('create <new_chain_name> : Create a new chain.')
+		log.info('create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'pathena-algo\', \'pathena-trf\'')
 
 
 
@@ -134,6 +153,7 @@ class CommandLine(cmd.Cmd):
 		Exits kBook
 		"""
 
+		self.book.save_chains()
 		self.book.save_preferences()
 
 		log.info('Goodbye')

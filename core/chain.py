@@ -7,6 +7,7 @@
 ##               of the previous job as new input files ##
 ##########################################################
 
+import os
 from job import Job
 
 ## =======================================================
@@ -17,10 +18,21 @@ class Chain:
 
 
 	## -------------------------------------------------------
-	def __init__(self):
+	def __init__(self, name, path, chain_type):
 		"""
 		Constructor
 		"""
 
-		self.path = ''
+		self.name = name
+		self.type = chain_type
+		self.path = path
 		self.jobs = []
+
+
+	## --------------------------------------------------------
+	def cd(self):
+		"""
+		Go to the chain's directory
+		"""
+
+		os.chdir(self.path)

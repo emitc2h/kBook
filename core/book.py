@@ -118,6 +118,42 @@ class Book:
 		log.info('Saving preferences into .kPrefs ...')
 		preferences_file = open('.kPrefs', 'w')
 		pickle.dump(self.preferences, preferences_file)
+		preferences_file.close()
+
+
+	## --------------------------------------------------------
+	def create_chain(self, name, chain_type):
+		"""
+		Create a chain
+		"""
+
+		chain_path = os.path.join(self.path, name)
+
+		try:
+			os.mkdir(chain_path)
+		except OSError:
+			log.error('Could not create chain with name {0}, another chain with the same name already exists.'.format(name))
+			return
+
+		new_chain  = Chain(name, chain_path, chain_type)
+		self.chains.append(new_chain)
+
+
+	## --------------------------------------------------------
+	def save_chains(self):
+		"""
+		Saves the chains
+		"""
+
+		log.info('Saving chains ...')
+		for chain in self.chains:
+			chain.cd()
+			chain_file = open('chain.kbk', 'w')
+			pickle.dump(chain, chain_file)
+			chain_file.close()
+
+
+	## --------------------------------------------------------
 
 
 
