@@ -6,7 +6,7 @@
 ##               user interface                         ##
 ##########################################################
 
-import os, sys, subprocess
+import os, sys, subprocess, cmd, readline
 import logging as log
 from subprocess import Popen, PIPE
 from chain import Chain
@@ -94,23 +94,3 @@ class Book:
 		for line in pout_voms_lines:
 			log.debug('    ' + line)
 		log.debug('')
- 
-
-
-
-	## --------------------------------------------------------
-	def run(self):
-		"""
-		runs the user interface
-		"""
-
-
-	## --------------------------------------------------------
-	def create_chain(self):
-		"""
-		Create a new chain
-		"""
-
-
-
-

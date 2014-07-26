@@ -8,7 +8,7 @@
 ##                                                      ##
 ##########################################################
 
-from core.book import Book
+from core.commandline import CommandLine
 import logging, time
 
 ## Create and configure logging services
@@ -22,10 +22,11 @@ logging.basicConfig(
 ## Also print to terminal
 console = logging.StreamHandler()
 console.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(levelname) - 8s : %(message)s')
+formatter = logging.Formatter('kBook > %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 
-the_book = Book()
+the_commandline = CommandLine()
+the_commandline.run()
 
 
