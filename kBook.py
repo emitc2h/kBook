@@ -8,25 +8,55 @@
 ##                                                      ##
 ##########################################################
 
+import logging, time, pickle
 from core.commandline import CommandLine
-import logging, time
+from core.preferences import Preferences
 
+## - - - - - - - - - - - - - - - - - - - - - - - - 
+## Loading preferences (or creating)
+
+try:
+	preferences_file = open('.kPrefs')
+	preferences = pickle.load(preferences_file)
+	preferences_file.close()
+except IOError:
+	preferences = Preferences()
+except EOFError:
+	print 'WARNING: preferences weren\'t saved correctly (unrecoverable), creating new preferences ...'
+	preferences = Preferences()
+
+preferences.update()
+
+## - - - - - - - - - - - - - - - - - - - - - - - - 
 ## Create and configure logging services
-logging.basicConfig(
-	filename="log.%s.txt" % time.strftime("%Y-%m-%d_%H-%M-%S"),
-	filemode='w',
-	format='%(levelname) - 8s : %(message)s',
-	level=logging.DEBUG
-	)
 
-## Also print to terminal
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-formatter = logging.Formatter('kBook > %(message)s')
-console.setFormatter(formatter)
-logging.getLogger('').addHandler(console)
+if preferences.dated_log_file:
+	log_file_name = 'log.{0}.txt'.format(time.strftime("%Y-%m-%d_%H-%M-%S"))
+else:
+	log_file_name = 'log.txt'
 
-the_commandline = CommandLine()
+if preferences.write_log_file:
+	logging.basicConfig(
+		filename=log_file_name,
+		filemode='w',
+		format='%(levelname) - 8s : %(message)s',
+		level=getattr(logging, preferences.log_file_level)
+		)
+
+	## Also print to terminal
+	console = logging.StreamHandler()
+	console.setLevel(logging.DEBUG)
+	formatter = logging.Formatter('kBook : %(message)s')
+	console.setFormatter(formatter)
+	logging.getLogger('').addHandler(console)
+else:
+	logging.basicConfig(
+		format='kBook : %(message)s',
+		level=logging.DEBUG
+		)
+
+
+the_commandline = CommandLine(preferences)
 the_commandline.run()
 
 

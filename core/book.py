@@ -6,10 +6,11 @@
 ##               user interface                         ##
 ##########################################################
 
-import os, sys, subprocess, cmd, readline
+import os, sys, subprocess, readline, pickle
 import logging as log
 from subprocess import Popen, PIPE
 from chain import Chain
+from preferences import Preferences
 
 ## =======================================================
 class Book:
@@ -19,7 +20,7 @@ class Book:
 
 
 	## -------------------------------------------------------
-	def __init__(self):
+	def __init__(self, preferences):
 		"""
 		Constructor
 		"""
@@ -28,9 +29,10 @@ class Book:
 		log.info('Welcome to kBook 2.0.0!')
 		log.info('-'*40)
 
-		self.chains = []
-		self.path   = 'books'
-		self.cwd    = ''
+		self.chains      = []
+		self.path        = 'books'
+		self.cwd         = ''
+		self.preferences = preferences
 
 		self.prepare()
 
@@ -42,6 +44,7 @@ class Book:
 		"""
 
 		log.info('Preparing ...')
+		log.info('')
 
 		## Make the path absolute
 		self.cwd = os.getcwd()
@@ -50,6 +53,7 @@ class Book:
 		## - - - - - - - - - - - - - - - - - - - - - - - - 
 		## Make books directory if it doesn't exist
 		log.debug('Checking that \'books\' directory is there ...')
+
 		try:
 			os.mkdir(self.path)
 			log.debug('    ... created')
@@ -94,3 +98,29 @@ class Book:
 		for line in pout_voms_lines:
 			log.debug('    ' + line)
 		log.debug('')
+
+
+		## - - - - - - - - - - - - - - - - - - - - - - - - 
+		## Show preferences
+		log.debug('The current preferences are:')
+		for i, pref in enumerate(self.preferences.list):
+				log.debug('    {0:<5} : {1:<20} : {2}'.format(i, pref, self.preferences[pref]))
+		log.debug('')
+
+
+	## --------------------------------------------------------
+	def save_preferences(self):
+		"""
+		Saves the preferences to the current directory
+		"""
+
+		os.chdir(self.cwd)
+		log.info('Saving preferences into .kPrefs ...')
+		preferences_file = open('.kPrefs', 'w')
+		pickle.dump(self.preferences, preferences_file)
+
+
+
+
+
+
