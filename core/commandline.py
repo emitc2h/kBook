@@ -26,6 +26,7 @@ class CommandLine(cmd.Cmd):
 		self.book   = Book(preferences)
 
 
+
 	## --------------------------------------------------------
 	def run(self):
 		"""
@@ -74,8 +75,6 @@ class CommandLine(cmd.Cmd):
 
 		self.book.create_chain(chain_name, chain_type)
 
-
-
 	## -------------------------------------------------------
 	def help_create(self):
 		"""
@@ -88,7 +87,38 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
-	def do_setpref(self, arg):
+	def do_ls(self, arg):
+		"""
+		list various things:
+		    - chains
+		    - jobs inside a chain
+		    - submsissions inside a job
+		"""
+
+		if not self.book.location:
+			self.book.sort_chains()
+			log.info('chains:')
+			log.info('-'*40)
+			for i,chain in enumerate(self.book.chains):
+				log.info('{0:<5} : {1:<20}'.format(i, chain.name))
+			log.info('-'*40)
+
+	## -------------------------------------------------------
+	def help_ls(self):
+		"""
+		ls documentation
+		"""
+
+		log.info('ls <index> : lists the content of a specified container, the container being one of the following:')
+		log,info('                 - the chains')
+		log.info('                 - the jobs inside a chain')
+		log.info('                 - the individual submissions inside a job')
+
+
+
+
+	## -------------------------------------------------------
+	def do_set(self, arg):
 		"""
 		sets a preference
 		"""
@@ -131,16 +161,14 @@ class CommandLine(cmd.Cmd):
 			log.info('Set value of {0} to {1}'.format(pref, value))
 			self.book.preferences[pref] = value
 
-
-
 	## -------------------------------------------------------
-	def help_setpref(self):
+	def help_set(self):
 		"""
 		setpref documentation
 		"""
 
-		log.info('setpref <pref_index> <new_pref_value> : Set a new value for a preference, referred to by index.')
-		log.info('                                        Leave no argument  to list the current preferences and associated indices.')
+		log.info('set <pref_index> <new_pref_value> : Set a new value for a preference, referred to by index.')
+		log.info('                                    Leave no argument  to list the current preferences and associated indices.')
 
 
 
@@ -166,3 +194,18 @@ class CommandLine(cmd.Cmd):
 		"""
 
 		log.info('exit : Exit kBook.')
+
+
+
+	## -------------------------------------------------------
+	def do_print(self, arg):
+		"""
+		prints the information contained in a specified data member of a chain
+		"""
+
+		arguments = arg.split(' ')
+		index = int(arguments[0])
+		member = arguments[1]
+
+		log.info('{0} = {1}'.format(member, getattr(self.book.chains[index], member)))
+

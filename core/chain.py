@@ -7,7 +7,7 @@
 ##               of the previous job as new input files ##
 ##########################################################
 
-import os
+import os, time
 from job import Job
 
 ## =======================================================
@@ -26,6 +26,8 @@ class Chain:
 		self.name = name
 		self.type = chain_type
 		self.path = path
+		self.creation_time = time.time()
+		self.modified_time = time.time()
 		self.jobs = []
 
 
@@ -36,3 +38,12 @@ class Chain:
 		"""
 
 		os.chdir(self.path)
+
+
+	## --------------------------------------------------------
+	def update(self):
+		"""
+		Update the chain's information
+		"""
+
+		self.modified_time = time.time()

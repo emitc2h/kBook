@@ -6,7 +6,7 @@
 ##               user interface                         ##
 ##########################################################
 
-import os, sys, subprocess, readline, pickle
+import os, sys, subprocess, readline, pickle, time
 import logging as log
 from subprocess import Popen, PIPE
 from chain import Chain
@@ -33,6 +33,7 @@ class Book:
 		self.path        = 'books'
 		self.cwd         = ''
 		self.preferences = preferences
+		self.location    = ''
 
 		self.prepare()
 
@@ -101,6 +102,26 @@ class Book:
 
 
 		## - - - - - - - - - - - - - - - - - - - - - - - - 
+		## Load chains
+		log.debug('Loading chains ...')
+		os.chdir(self.path)
+		chain_dirs = os.listdir('.')
+		if not len(chain_dirs) == 0:
+			for chain_dir in chain_dirs:
+				log.debug('    ... loading {0}'.format(chain_dir))
+				chain_path = os.path.join(self.path, chain_dir)
+				os.chdir(chain_path)
+				chain_file = open(os.path.join(chain_path, 'chain.kbk'))
+				chain = pickle.load(chain_file)
+				self.chains.append(chain)
+				chain_file.close()
+		else:
+			log.debug('    No chains to load.')
+
+		log.debug('')
+
+
+		## - - - - - - - - - - - - - - - - - - - - - - - - 
 		## Show preferences
 		log.debug('The current preferences are:')
 		for i, pref in enumerate(self.preferences.list):
@@ -154,6 +175,12 @@ class Book:
 
 
 	## --------------------------------------------------------
+	def sort_chains(self):
+		"""
+		sort the chains from most recently modified to oldest
+		"""
+
+		self.chains.sort(key=lambda chain: chain.modified_time, reverse=True)
 
 
 
