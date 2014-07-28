@@ -17,16 +17,19 @@ class Job:
 	"""
 
 	## -------------------------------------------------------
-	def __init__(self):
+	def __init__(self, input_files):
 		"""
 		Constructor
 		"""
 
-		self.version       = 0
-		self.panda_options = ''
-		self.status        = -1
-		self.submissions   = []
-		self.path          = ''
+		self.version          = 0
+		self.panda_options    = ''
+		self.status           = -1
+		self.type             = ''
+		self.submissions      = []
+		self.path             = ''
+		self.input_files_path = ''
+		self.input_files      = []
 
 
 	## -------------------------------------------------------

@@ -6,7 +6,7 @@
 ##               user interface                         ##
 ##########################################################
 
-import os, sys, subprocess, readline, pickle, time
+import os, shutil, sys, subprocess, readline, pickle, time
 import logging as log
 from subprocess import Popen, PIPE
 from chain import Chain
@@ -111,7 +111,17 @@ class Book:
 				log.debug('    ... loading {0}'.format(chain_dir))
 				chain_path = os.path.join(self.path, chain_dir)
 				os.chdir(chain_path)
-				chain_file = open(os.path.join(chain_path, 'chain.kbk'))
+				try:
+					chain_file = open(os.path.join(chain_path, 'chain.kbk'))
+				except IOError:
+					log.error('    ... {0} is corrupted, skipping. Delete?'.format(chain_dir))
+					answer = raw_input('kBook :     (y/n) > ')
+					if answer == 'y':
+						shutil.rmtree(chain_path)
+						log.info('    ... deleted.')
+					else:
+						log.warning('    ... will not delete.')
+					continue
 				chain = pickle.load(chain_file)
 				self.chains.append(chain)
 				chain_file.close()
@@ -143,7 +153,7 @@ class Book:
 
 
 	## --------------------------------------------------------
-	def create_chain(self, name, chain_type):
+	def create_chain(self, name, chain_type, input_files_path, **kwargs):
 		"""
 		Create a chain
 		"""
@@ -156,7 +166,7 @@ class Book:
 			log.error('Could not create chain with name {0}, another chain with the same name already exists.'.format(name))
 			return
 
-		new_chain  = Chain(name, chain_path, chain_type)
+		new_chain  = Chain(name, chain_path, chain_type, input_files_path, **kwargs)
 		self.chains.append(new_chain)
 
 

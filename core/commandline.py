@@ -5,9 +5,18 @@
 ## description : The command line interface             ##
 ##########################################################
 
-import cmd, readline, sys, pickle
+import cmd, readline, os, sys, pickle, glob
 import logging as log
 from book import Book
+from chain import Chain
+
+## ==========================================================
+## Define the two types of completers
+def path_completer(text, state): return (glob.glob(text+'*')+[None])[state]
+path_delimiters     = ' \t\n;'
+readline.parse_and_bind('tab: complete')
+
+
 
 ## =======================================================
 class CommandLine(cmd.Cmd):
@@ -24,6 +33,10 @@ class CommandLine(cmd.Cmd):
 		cmd.Cmd.__init__(self)
 		self.prompt = 'kBook > '
 		self.book   = Book(preferences)
+
+		self.default_completer  = readline.get_completer()
+		self.default_delimiters = readline.get_completer_delims()
+
 
 
 
@@ -62,18 +75,30 @@ class CommandLine(cmd.Cmd):
 			log.error('Must provide 2 arguments: type of chain and name')
 			return
 
-		chain_type = arguments[0]
+		job_type   = arguments[0]
 		chain_name = arguments[1]
 
 		if not chain_name.isalnum():
 			log.error('Please provide a chain name that is alphanumeric (example: \'mychain456\').')
 			return
 
-		if not (chain_type=='prun' or chain_type=='pathena-algo' or chain_type=='pathena-trf'):
+		if not (job_type=='prun' or job_type=='pathena-algo' or job_type=='pathena-trf'):
 			log.error('Please provide of the the following chain types: \'prun\', \'pathena-algo\' or \'pathena-trf\'.')
 			return
 
-		self.book.create_chain(chain_name, chain_type)
+		input_files_path = self.ask_for_path('create : please provide path to list of input datasets')
+
+		## job type specific input
+		script_path = ''
+		if job_type == 'prun':
+			script_path = self.ask_for_path('create : prun : please provide path to the script to be executed')
+
+		self.book.create_chain(
+			chain_name,
+			job_type,
+			input_files_path,
+			script_path=script_path
+			)
 
 	## -------------------------------------------------------
 	def help_create(self):
@@ -157,7 +182,6 @@ class CommandLine(cmd.Cmd):
 					except ValueError:
 						pass
 
-
 			log.info('Set value of {0} to {1}'.format(pref, value))
 			self.book.preferences[pref] = value
 
@@ -204,8 +228,87 @@ class CommandLine(cmd.Cmd):
 		"""
 
 		arguments = arg.split(' ')
-		index = int(arguments[0])
-		member = arguments[1]
 
-		log.info('{0} = {1}'.format(member, getattr(self.book.chains[index], member)))
+		## Make sure the index provided is an integer
+		try:
+			index = int(arguments[0])
+		except ValueError:
+			log.error('Provided \'{0}\' as a chain index, needs integer value from 0 to {1}'.format(arguments[0], len(self.book.chains)-1))
+			return
+
+		## Check that the index is within range
+		if not 0 <= index < len(self.book.chains):
+			log.error('Must provide a chain index from 0 to {0}'.format(len(self.book.chains)-1))
+			return
+
+		## Make sure a second argument is provided
+		try:
+			member = arguments[1]
+		except IndexError:
+			log.error('Must provide a chain attribute to look at. Possible attributes are:')
+			test_chain = Chain('', '', '', '')
+			for att in dir(test_chain):
+				if not '__' in att:
+					log.info('    {0}'.format(att))
+			log.info('')
+			return
+
+		## Make sure the second argument provided is an actual attribute of the chain class
+		try:
+			log.info('{0} = {1}'.format(member, getattr(self.book.chains[index], member)))
+		except AttributeError:
+			log.error('Chains have no attributes named {0}. Possible attributes are:'.format(member))
+			test_chain = Chain('', '', '', '')
+			for att in dir(test_chain):
+				if not '__' in att:
+					log.info('    {0}'.format(att))
+			log.info('')
+			return
+
+	## -------------------------------------------------------
+	def help_print(self):
+		"""
+		print documentation
+		"""
+
+		log.info('print <index> <attribute> : prints the attribute of chain/job/submission with given index.')
+
+
+
+
+	## -------------------------------------------------------
+	def ask_for_path(self, prompt):
+		"""
+		ask user to provide a path, with path autocomplete capabilities
+		"""
+
+		cwd = os.getcwd()
+		os.chdir(self.book.cwd)
+
+		## Switch to path completer
+		readline.set_completer_delims(path_delimiters)
+		readline.set_completer(path_completer)
+
+		path_is_good = False
+
+		while not path_is_good:
+			try:
+				path = raw_input('kBook : {0} > '.format(prompt))
+				absolute_path = os.path.abspath(path)
+				path_is_good = True
+			except OSError:
+				log.error('Path is no valid. Please provide a valid path to an existing file.')
+
+		## Switch back to default completer
+		readline.set_completer_delims(self.default_delimiters)
+		readline.set_completer(self.default_completer)
+
+		os.chdir(cwd)
+
+		return absolute_path
+
+
+
+
+
 

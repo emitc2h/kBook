@@ -17,12 +17,13 @@ class JobPrun(Job):
 
 
 	## -------------------------------------------------------
-	def __init__(self):
+	def __init__(self, script_path, *args, **kwargs):
 		"""
 		Constructor
 		"""
 
-		Job.__init__(self)
+		Job.__init__(self, *args, **kwargs)
 
-		self.script_path = ''
+		self.script_path = script_path
+		self.type        = 'prun'
 		
