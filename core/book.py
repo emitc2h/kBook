@@ -177,6 +177,8 @@ class Book:
 			self.sort_chains()
 			log.info('chains:')
 			log.info('-'*40)
+			log.info('index : chain name')
+			log.info('- '*20)
 			for i,chain in enumerate(self.chains):
 				log.info('{0:<5} : {1:<20}'.format(i, chain.name))
 			log.info('-'*40)
@@ -189,7 +191,7 @@ class Book:
 	## --------------------------------------------------------
 	def cd(self, locator=''):
 		"""
-		Navigates the chains, jobs and submissions
+		go to a chain
 		"""
 
 		i, chain = self.locate(locator)
@@ -211,7 +213,7 @@ class Book:
 
 
 	## --------------------------------------------------------
-	def create_chain(self, name, chain_type, input_files_path, **kwargs):
+	def create_chain(self, name, chain_type, input_file_path, **kwargs):
 		"""
 		Create a chain
 		"""
@@ -224,7 +226,7 @@ class Book:
 			log.error('Could not create chain with name {0}, another chain with the same name already exists.'.format(name))
 			return
 
-		new_chain  = Chain(name, chain_path, chain_type, input_files_path, **kwargs)
+		new_chain = Chain(name, chain_path, chain_type, input_file_path, **kwargs)
 		self.save_chain(new_chain)
 		self.chains.append(new_chain)
 

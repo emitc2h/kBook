@@ -79,7 +79,7 @@ class CommandLine(cmd.Cmd):
 			log.error('Please provide of the the following chain types: \'prun\', \'pathena-algo\' or \'pathena-trf\'.')
 			return
 
-		input_files_path = self.ask_for_path('create : please provide path to list of input datasets')
+		input_file_path = self.ask_for_path('create : please provide path to list of input datasets')
 
 		## job type specific input
 		script_path = ''
@@ -89,7 +89,7 @@ class CommandLine(cmd.Cmd):
 		self.book.create_chain(
 			chain_name,
 			job_type,
-			input_files_path,
+			input_file_path,
 			script_path=script_path
 			)
 
@@ -128,6 +128,8 @@ class CommandLine(cmd.Cmd):
 			if new_location:
 				self.book.parent_locations.append(self.book.location)
 				self.book.location = new_location
+
+		print self.book.location
 
 
 
@@ -191,54 +193,6 @@ class CommandLine(cmd.Cmd):
 
 		log.info('Goodbye')
 		sys.exit(1)
-
-
-
-
-
-	## -------------------------------------------------------
-	def do_print(self, arg):
-		"""
-		print <index> <attribute> : prints the attribute of chain/job/submission with given index.
-		"""
-
-		arguments = arg.split(' ')
-
-		## Make sure the index provided is an integer
-		try:
-			index = int(arguments[0])
-		except ValueError:
-			log.error('Provided \'{0}\' as a chain index, needs integer value from 0 to {1}'.format(arguments[0], len(self.book.chains)-1))
-			return
-
-		## Check that the index is within range
-		if not 0 <= index < len(self.book.chains):
-			log.error('Must provide a chain index from 0 to {0}'.format(len(self.book.chains)-1))
-			return
-
-		## Make sure a second argument is provided
-		try:
-			member = arguments[1]
-		except IndexError:
-			log.error('Must provide a chain attribute to look at. Possible attributes are:')
-			test_chain = Chain('', '', '', '')
-			for att in dir(test_chain):
-				if not '__' in att:
-					log.info('    {0}'.format(att))
-			log.info('')
-			return
-
-		## Make sure the second argument provided is an actual attribute of the chain class
-		try:
-			log.info('{0} = {1}'.format(member, getattr(self.book.chains[index], member)))
-		except AttributeError:
-			log.error('Chains have no attributes named {0}. Possible attributes are:'.format(member))
-			test_chain = Chain('', '', '', '')
-			for att in dir(test_chain):
-				if not '__' in att:
-					log.info('    {0}'.format(att))
-			log.info('')
-			return
 
 
 
