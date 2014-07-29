@@ -46,7 +46,6 @@ class CommandLine(cmd.Cmd):
 
 
 
-
 	## -------------------------------------------------------
 	def help_help(self):
 		"""
@@ -57,11 +56,10 @@ class CommandLine(cmd.Cmd):
 
 
 
-
 	## -------------------------------------------------------
 	def do_create(self, arg):
 		"""
-		Create a new chain
+		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'pathena-algo\', \'pathena-trf\'
 		"""
 
 		## Interpret arguments
@@ -95,44 +93,41 @@ class CommandLine(cmd.Cmd):
 			script_path=script_path
 			)
 
-	## -------------------------------------------------------
-	def help_create(self):
-		"""
-		create documentation
-		"""
-
-		log.info('create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'pathena-algo\', \'pathena-trf\'')
-
 
 
 
 	## -------------------------------------------------------
 	def do_ls(self, arg):
 		"""
-		list various things:
-		    - chains
-		    - jobs inside a chain
-		    - submsissions inside a job
+		ls <index> : lists the content of a specified container, the container being one of the following:
+		                 - the chains
+		                 - the jobs inside a chain
+		                 - the individual submissions inside a job
 		"""
 
-		if not self.book.location:
-			self.book.sort_chains()
-			log.info('chains:')
-			log.info('-'*40)
-			for i,chain in enumerate(self.book.chains):
-				log.info('{0:<5} : {1:<20}'.format(i, chain.name))
-			log.info('-'*40)
+		self.book.location.ls(arg)
+
+
+
 
 	## -------------------------------------------------------
-	def help_ls(self):
+	def do_cd(self, arg):
 		"""
-		ls documentation
+		cd <index> : navigate the chains, jobs and submission.
+		             Type \'cd ..\' to go back
 		"""
 
-		log.info('ls <index> : lists the content of a specified container, the container being one of the following:')
-		log,info('                 - the chains')
-		log.info('                 - the jobs inside a chain')
-		log.info('                 - the individual submissions inside a job')
+		if arg == '..':
+			if len(self.book.parent_locations) > 0:
+				self.book.location = self.book.parent_locations[-1]
+				self.book.parent_locations.pop()
+			else:
+				log.error('Already at top level.')
+		else:
+			new_location = self.book.location.cd(arg)
+			if new_location:
+				self.book.parent_locations.append(self.book.location)
+				self.book.location = new_location
 
 
 
@@ -140,7 +135,8 @@ class CommandLine(cmd.Cmd):
 	## -------------------------------------------------------
 	def do_set(self, arg):
 		"""
-		sets a preference
+		set <pref_index> <new_pref_value> : Set a new value for a preference, referred to by index.
+		                                    Leave no argument  to list the current preferences and associated indices.
 		"""
 
 		## Print list of preferences if not arguments are passed
@@ -180,16 +176,6 @@ class CommandLine(cmd.Cmd):
 			log.info('Set value of {0} to {1}'.format(pref, value))
 			self.book.preferences[pref] = value
 
-	## -------------------------------------------------------
-	def help_set(self):
-		"""
-		setpref documentation
-		"""
-
-		log.info('set <pref_index> <new_pref_value> : Set a new value for a preference, referred to by index.')
-		log.info('                                    Leave no argument  to list the current preferences and associated indices.')
-
-
 
 
 
@@ -197,7 +183,7 @@ class CommandLine(cmd.Cmd):
 	## -------------------------------------------------------
 	def do_exit(self, arg):
 		"""
-		Exits kBook
+		exit : Exit kBook.
 		"""
 
 		self.book.save_chains()
@@ -206,20 +192,14 @@ class CommandLine(cmd.Cmd):
 		log.info('Goodbye')
 		sys.exit(1)
 
-	## -------------------------------------------------------
-	def help_exit(self):
-		"""
-		exit documentation
-		"""
 
-		log.info('exit : Exit kBook.')
 
 
 
 	## -------------------------------------------------------
 	def do_print(self, arg):
 		"""
-		prints the information contained in a specified data member of a chain
+		print <index> <attribute> : prints the attribute of chain/job/submission with given index.
 		"""
 
 		arguments = arg.split(' ')
@@ -260,13 +240,6 @@ class CommandLine(cmd.Cmd):
 			log.info('')
 			return
 
-	## -------------------------------------------------------
-	def help_print(self):
-		"""
-		print documentation
-		"""
-
-		log.info('print <index> <attribute> : prints the attribute of chain/job/submission with given index.')
 
 
 

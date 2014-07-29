@@ -8,6 +8,7 @@
 ##########################################################
 
 import os, time
+import logging as log
 from job_prun import JobPrun
 
 ## =======================================================
@@ -35,12 +36,52 @@ class Chain:
 
 
 	## --------------------------------------------------------
-	def cd(self):
+	def cd(self, locator):
 		"""
 		Go to the chain's directory
 		"""
 
-		os.chdir(self.path)
+		try:
+			index = int(locator)
+		except ValueError:
+			log.error('Please provide a job index')
+			return False
+
+		try:
+			return self.jobs[index], 
+		except IndexError:
+			log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
+			return False
+
+		
+
+
+	## --------------------------------------------------------
+	def ls(self, locator=''):
+		"""
+		lists the jobs in the chain
+		"""
+
+		if not locator:
+			log.info('Jobs in {0} :'.format(self.name))
+			log.info('-'*40)
+			for i, job in enumerate(self.jobs):
+				log.info('{0:<5} : {1:<20}'.format(i, job.type))
+	
+			log.info('-'*40)
+		else:
+			try:
+				index = int(locator)
+			except ValueError:
+				log.error('Please provide a job index')
+				return
+	
+			try:
+				self.jobs[index].ls() 
+			except IndexError:
+				log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
+
+
 
 
 	## --------------------------------------------------------

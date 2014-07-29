@@ -29,11 +29,12 @@ class Book:
 		log.info('Welcome to kBook 2.0.0!')
 		log.info('-'*40)
 
-		self.chains      = []
-		self.path        = 'books'
-		self.cwd         = ''
-		self.preferences = preferences
-		self.location    = ''
+		self.chains           = []
+		self.path             = 'books'
+		self.cwd              = ''
+		self.preferences      = preferences
+		self.parent_locations = []
+		self.location         = self
 
 		self.prepare()
 
@@ -140,6 +141,63 @@ class Book:
 
 
 	## --------------------------------------------------------
+	def locate(self, locator):
+		"""
+		return chain, job or submission based on index or name 
+		"""
+
+		## locator interpretation: name or index?
+		is_index = False
+		try:
+			index = int(locator)
+			is_index = True
+		except ValueError:
+			pass
+
+		if is_index:
+			try:
+				return index, self.chains[index]
+			except IndexError:
+				log.error('The index provided must from 0 to {0}'.format(len(self.chain)-1))
+				return -1, None
+		else:
+			for i, chain in enumerate(self.chains):
+				if chain.name == locator: return i, chain
+			log.error('Could not locate chain with name {0}'.format(locator))
+			return -1, None
+
+
+	## --------------------------------------------------------
+	def ls(self, locator=''):
+		"""
+		lists chains, jobs, submissions
+		"""
+
+		if not locator:
+			self.sort_chains()
+			log.info('chains:')
+			log.info('-'*40)
+			for i,chain in enumerate(self.chains):
+				log.info('{0:<5} : {1:<20}'.format(i, chain.name))
+			log.info('-'*40)
+		else:
+			i, chain = self.locate(locator)
+			if i < 0: return
+			chain.ls()
+
+
+	## --------------------------------------------------------
+	def cd(self, locator=''):
+		"""
+		Navigates the chains, jobs and submissions
+		"""
+
+		i, chain = self.locate(locator)
+		if i < 0: return False
+		return chain
+
+
+	## --------------------------------------------------------
 	def save_preferences(self):
 		"""
 		Saves the preferences to the current directory
@@ -167,21 +225,32 @@ class Book:
 			return
 
 		new_chain  = Chain(name, chain_path, chain_type, input_files_path, **kwargs)
+		self.save_chain(new_chain)
 		self.chains.append(new_chain)
+
+
+	## --------------------------------------------------------
+	def save_chain(self, chain):
+		"""
+		Saves a single chain
+		"""
+
+		os.chdir(chain.path)
+		chain_file = open('chain.kbk', 'w')
+		pickle.dump(chain, chain_file)
+		chain_file.close()
+		os.chdir(self.path)
 
 
 	## --------------------------------------------------------
 	def save_chains(self):
 		"""
-		Saves the chains
+		Saves all chains
 		"""
 
 		log.info('Saving chains ...')
 		for chain in self.chains:
-			chain.cd()
-			chain_file = open('chain.kbk', 'w')
-			pickle.dump(chain, chain_file)
-			chain_file.close()
+			self.save_chain(chain)
 
 
 	## --------------------------------------------------------
