@@ -10,13 +10,11 @@ import logging as log
 from book import Book
 from chain import Chain
 
-## ==========================================================
+## =======================================================
 ## Define the two types of completers
 def path_completer(text, state): return (glob.glob(text+'*')+[None])[state]
 path_delimiters     = ' \t\n;'
 readline.parse_and_bind('tab: complete')
-
-
 
 ## =======================================================
 class CommandLine(cmd.Cmd):
@@ -33,9 +31,6 @@ class CommandLine(cmd.Cmd):
 		cmd.Cmd.__init__(self)
 		self.prompt = 'kBook > '
 		self.book   = Book(preferences)
-
-		self.default_completer  = readline.get_completer()
-		self.default_delimiters = readline.get_completer_delims()
 
 
 
@@ -285,6 +280,10 @@ class CommandLine(cmd.Cmd):
 		cwd = os.getcwd()
 		os.chdir(self.book.cwd)
 
+		## Retrieve the default completer and delimiters
+		default_completer  = readline.get_completer()
+		default_delimiters = readline.get_completer_delims()
+
 		## Switch to path completer
 		readline.set_completer_delims(path_delimiters)
 		readline.set_completer(path_completer)
@@ -300,8 +299,8 @@ class CommandLine(cmd.Cmd):
 				log.error('Path is no valid. Please provide a valid path to an existing file.')
 
 		## Switch back to default completer
-		readline.set_completer_delims(self.default_delimiters)
-		readline.set_completer(self.default_completer)
+		readline.set_completer_delims(default_delimiters)
+		readline.set_completer(default_completer)
 
 		os.chdir(cwd)
 
