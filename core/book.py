@@ -200,6 +200,19 @@ class Book:
 
 
 	## --------------------------------------------------------
+	def submit(self, locator=''):
+		"""
+		submits a chain
+		"""
+
+		if not locator:
+			log.error('Cannot submit all the chains at once, specify a chain index.')
+		else:
+			i, chain = self.locate(locator)
+			chain.submit()
+
+
+	## --------------------------------------------------------
 	def save_preferences(self):
 		"""
 		Saves the preferences to the current directory
@@ -226,7 +239,7 @@ class Book:
 			log.error('Could not create chain with name {0}, another chain with the same name already exists.'.format(name))
 			return
 
-		new_chain = Chain(name, chain_path, chain_type, input_file_path, **kwargs)
+		new_chain = Chain(self.preferences, name, chain_path, chain_type, input_file_path, **kwargs)
 		self.save_chain(new_chain)
 		self.chains.append(new_chain)
 

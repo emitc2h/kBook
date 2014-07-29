@@ -82,15 +82,29 @@ class CommandLine(cmd.Cmd):
 		input_file_path = self.ask_for_path('create : please provide path to list of input datasets')
 
 		## job type specific input
-		script_path = ''
+		script_path  = ''
+		use_root     = False
+		root_version = ''
+		output       = ''
+
 		if job_type == 'prun':
 			script_path = self.ask_for_path('create : prun : please provide path to the script to be executed')
+			use_root    = raw_input('kBook : create : prun : Use ROOT? (y/n) > ')
+			if use_root == 'y':
+				use_root = True
+				root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 5.34.18) > ')
+				if not root_version: root_version = '5.34.18'
+			output = raw_input('kBook : create : prun : provide names of output files to be stored (comma-separated) > ')
+
 
 		self.book.create_chain(
 			chain_name,
 			job_type,
 			input_file_path,
-			script_path=script_path
+			script_path=script_path,
+			use_root=use_root,
+			root_version=root_version,
+			output=output
 			)
 
 
@@ -129,7 +143,15 @@ class CommandLine(cmd.Cmd):
 				self.book.parent_locations.append(self.book.location)
 				self.book.location = new_location
 
-		print self.book.location
+
+
+	## -------------------------------------------------------
+	def do_submit(self, arg):
+		"""
+		submit <index> : submit a chain, job or submission
+		"""
+
+		self.book.location.submit(arg)
 
 
 

@@ -19,11 +19,12 @@ class Chain:
 
 
 	## -------------------------------------------------------
-	def __init__(self, name, path, initial_job_type, input_file_path, **kwargs):
+	def __init__(self, preferences, name, path, initial_job_type, input_file_path, **kwargs):
 		"""
 		Constructor
 		"""
 
+		self.preferences = preferences
 		self.name = name
 		self.path = path
 		self.creation_time = time.time()
@@ -94,12 +95,26 @@ class Chain:
 
 
 	## --------------------------------------------------------
-	def submit(self):
+	def submit(self, locator=''):
 		"""
-		Submit the last job in the chain
+		Submit jobs
 		"""
 
 		self.modified_time = time.time()
+		if not locator:
+			for job in self.jobs:
+				job.submit()
+		else:
+			try:
+				index = int(locator)
+			except ValueError:
+				log.error('Please provide a job index')
+				return
+	
+			try:
+				self.jobs[index].submit() 
+			except IndexError:
+				log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
 
 
 	## --------------------------------------------------------
@@ -110,8 +125,22 @@ class Chain:
 
 		self.modified_time = time.time()
 		if job_type == 'prun':
-			script_path = kwargs['script_path']
-			new_jobprun = JobPrun(script_path, input_file_path)
+			script_path  = kwargs['script_path']
+			use_root     = kwargs['use_root']
+			root_version = kwargs['root_version']
+			output       = kwargs['output']
+			path         = os.path.join(self.path, 'job0000')
+
+			new_jobprun = JobPrun(
+				script_path,
+				use_root,
+				root_version,
+				output,
+				self.preferences,
+				path,
+				input_file_path
+				)
+
 			self.jobs.append(new_jobprun)
 
 
