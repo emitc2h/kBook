@@ -9,25 +9,26 @@
 import os, shutil
 import logging as log
 from submission import Submission
+from navigable import Navigable
 
 ## =======================================================
-class Job:
+class Job(Navigable):
 	"""
 	A class to contain a single job comfiguration, but to
 	be used on many input datasets
 	"""
 
 	## -------------------------------------------------------
-	def __init__(self, preferences, path, input_file_path):
+	def __init__(self, name, parent, path, input_file_path):
 		"""
 		Constructor
 		"""
 
-		self.preferences      = preferences
+		Navigable.__init__(self, name, parent)
+
 		self.version          = 0
 		self.status           = 'not submitted'
 		self.type             = ''
-		self.submissions      = []
 		self.path             = path
 		self.input_file_path  = input_file_path
 		self.command          = ''
@@ -46,55 +47,8 @@ class Job:
 
 		f = open(self.input_file_path)
 		lines = f.readlines()
-		for line in lines:
-			self.submissions.append(Submission(self.preferences, line.rstrip('\n'), self.command, self.path))
-
-
-	## --------------------------------------------------------
-	def cd(self, locator):
-		"""
-		go to a submission
-		"""
-
-		try:
-			index = int(locator)
-		except ValueError:
-			log.error('Please provide a submission index')
-			return False
-
-		try:
-			return self.submissions[index]
-		except IndexError:
-			log.error('The index provided must from 0 to {0}'.format(len(self.submissions)-1))
-			return False
-
-
-	## --------------------------------------------------------
-	def ls(self, locator=''):
-		"""
-		lists the jobs in the chain
-		"""
-
-		if not locator:
-			log.info('Submissions:')
-			log.info('-'*40)
-			log.info('index : status         : input dataset')
-			log.info('- '*20)
-			for i, submission in enumerate(self.submissions):
-				log.info('{0:<5} : {1:<14} : {2:<20}'.format(i, submission.status, submission.input_dataset))
-	
-			log.info('-'*40)
-		else:
-			try:
-				index = int(locator)
-			except ValueError:
-				log.error('Please provide a submission index')
-				return
-	
-			try:
-				self.submissions[index].ls() 
-			except IndexError:
-				log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
+		for i, line in enumerate(lines):
+			self.append(Submission('submission{0}'.format(str(i).zfill(4)), self, line.rstrip('\n'), self.command, self.path))
 
 
 	## --------------------------------------------------------
@@ -104,7 +58,7 @@ class Job:
 		"""
 
 		if not locator:
-			for submission in self.submissions:
+			for submission in self:
 				submission.submit()
 		else:
 			try:
@@ -114,7 +68,7 @@ class Job:
 				return
 	
 			try:
-				self.submissions[index].submit() 
+				self[index].submit() 
 			except IndexError:
 				log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
 

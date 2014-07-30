@@ -50,7 +50,7 @@ class JobPrun(Job):
 		constructs a prun command
 		"""
 
-		self.command = 'prun --exec="{script} %IN" '.format(script=self.script_name)
+		self.command = 'prun --exec="python {script} %IN" '.format(script=self.script_name)
 		if self.use_root:
 			self.command += '--rootVer {root} '.format(root=self.root_version)
 		self.command += '--outputs {output} '.format(output=self.output)
@@ -63,9 +63,9 @@ class JobPrun(Job):
 		generate output dataset names for all submissions
 		"""
 
-		for submission in self.submissions:
+		for submission in self:
 			outDS = 'user.{0}.{1}.{2}.{3}'.format(
-				self.preferences.user,
+				self.parent.parent.preferences.user,
 				submission.input_dataset.replace('/', ''),
 				self.script_name.replace('.py', ''),
 				'v{0}'.format(self.version)

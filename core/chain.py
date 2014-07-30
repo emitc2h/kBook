@@ -10,80 +10,29 @@
 import os, time
 import logging as log
 from job_prun import JobPrun
+from navigable import Navigable
 
 ## =======================================================
-class Chain:
+class Chain(Navigable):
 	"""
 	A class to contain a chain of jobs
 	"""
 
 
 	## -------------------------------------------------------
-	def __init__(self, preferences, name, path, initial_job_type, input_file_path, **kwargs):
+	def __init__(self, name, parent, path, initial_job_type, input_file_path, **kwargs):
 		"""
 		Constructor
 		"""
 
-		self.preferences = preferences
+		Navigable.__init__(self, name, parent)
+
 		self.name = name
 		self.path = path
 		self.creation_time = time.time()
 		self.modified_time = time.time()
-		self.jobs = []
 
 		self.create_job(input_file_path, initial_job_type, **kwargs)
-
-
-
-
-	## --------------------------------------------------------
-	def cd(self, locator):
-		"""
-		Go to a job
-		"""
-
-		try:
-			index = int(locator)
-		except ValueError:
-			log.error('Please provide a job index')
-			return False
-
-		try:
-			return self.jobs[index]
-		except IndexError:
-			log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
-			return False
-
-		
-
-
-	## --------------------------------------------------------
-	def ls(self, locator=''):
-		"""
-		lists the jobs in the chain
-		"""
-
-		if not locator:
-			log.info('Jobs:')
-			log.info('-'*40)
-			log.info('index : status         : job type')
-			log.info('- '*20)
-			for i, job in enumerate(self.jobs):
-				log.info('{0:<5} : {1:<14} : {2:<20}'.format(i, job.status, job.type))
-	
-			log.info('-'*40)
-		else:
-			try:
-				index = int(locator)
-			except ValueError:
-				log.error('Please provide a job index')
-				return
-	
-			try:
-				self.jobs[index].ls() 
-			except IndexError:
-				log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
-
 
 
 
@@ -102,7 +51,7 @@ class Chain:
 
 		self.modified_time = time.time()
 		if not locator:
-			for job in self.jobs:
+			for job in self:
 				job.submit()
 		else:
 			try:
@@ -112,9 +61,9 @@ class Chain:
 				return
 	
 			try:
-				self.jobs[index].submit() 
+				self[index].submit() 
 			except IndexError:
-				log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
+				log.error('The index provided must from 0 to {0}'.format(len(self)-1))
 
 
 	## --------------------------------------------------------
@@ -136,12 +85,13 @@ class Chain:
 				use_root,
 				root_version,
 				output,
-				self.preferences,
+				'job0000',
+				self,
 				path,
 				input_file_path
 				)
 
-			self.jobs.append(new_jobprun)
+			self.append(new_jobprun)
 
 
 	## ---------------------------------------------------------

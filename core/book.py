@@ -11,29 +11,30 @@ import logging as log
 from subprocess import Popen, PIPE
 from chain import Chain
 from preferences import Preferences
+from navigable import Navigable
 
 ## =======================================================
-class Book:
+class Book(Navigable):
 	"""
 	The kBook user interface
 	"""
 
 
 	## -------------------------------------------------------
-	def __init__(self, preferences):
+	def __init__(self, name, preferences):
 		"""
 		Constructor
 		"""
+
+		Navigable.__init__(self, name, None)
 
 		log.info('='*40)
 		log.info('Welcome to kBook 2.0.0!')
 		log.info('-'*40)
 
-		self.chains           = []
 		self.path             = 'books'
 		self.cwd              = ''
 		self.preferences      = preferences
-		self.parent_locations = []
 		self.location         = self
 
 		self.prepare()
@@ -124,10 +125,14 @@ class Book:
 						log.warning('    ... will not delete.')
 					continue
 				chain = pickle.load(chain_file)
-				self.chains.append(chain)
+				self.append(chain)
 				chain_file.close()
 		else:
 			log.debug('    No chains to load.')
+
+		log.debug('    ... rebuilding hierarchy')
+		self.rebuild_hierarchy()
+		log.debug('    ... done.')
 
 		log.debug('')
 
@@ -139,64 +144,6 @@ class Book:
 				log.debug('    {0:<5} : {1:<20} : {2}'.format(i, pref, self.preferences[pref]))
 		log.debug('')
 
-
-	## --------------------------------------------------------
-	def locate(self, locator):
-		"""
-		return chain, job or submission based on index or name 
-		"""
-
-		## locator interpretation: name or index?
-		is_index = False
-		try:
-			index = int(locator)
-			is_index = True
-		except ValueError:
-			pass
-
-		if is_index:
-			try:
-				return index, self.chains[index]
-			except IndexError:
-				log.error('The index provided must from 0 to {0}'.format(len(self.chain)-1))
-				return -1, None
-		else:
-			for i, chain in enumerate(self.chains):
-				if chain.name == locator: return i, chain
-			log.error('Could not locate chain with name {0}'.format(locator))
-			return -1, None
-
-
-	## --------------------------------------------------------
-	def ls(self, locator=''):
-		"""
-		lists chains, jobs, submissions
-		"""
-
-		if not locator:
-			self.sort_chains()
-			log.info('chains:')
-			log.info('-'*40)
-			log.info('index : chain name')
-			log.info('- '*20)
-			for i,chain in enumerate(self.chains):
-				log.info('{0:<5} : {1:<20}'.format(i, chain.name))
-			log.info('-'*40)
-		else:
-			i, chain = self.locate(locator)
-			if i < 0: return
-			chain.ls()
-
-
-	## --------------------------------------------------------
-	def cd(self, locator=''):
-		"""
-		go to a chain
-		"""
-
-		i, chain = self.locate(locator)
-		if i < 0: return False
-		return chain
 
 
 	## --------------------------------------------------------
@@ -239,9 +186,9 @@ class Book:
 			log.error('Could not create chain with name {0}, another chain with the same name already exists.'.format(name))
 			return
 
-		new_chain = Chain(self.preferences, name, chain_path, chain_type, input_file_path, **kwargs)
+		new_chain = Chain(name, self, chain_path, chain_type, input_file_path, **kwargs)
 		self.save_chain(new_chain)
-		self.chains.append(new_chain)
+		self.append(new_chain)
 
 
 	## --------------------------------------------------------
@@ -252,7 +199,7 @@ class Book:
 
 		os.chdir(chain.path)
 		chain_file = open('chain.kbk', 'w')
-		pickle.dump(chain, chain_file)
+		pickle.dump(chain, chain_file, pickle.HIGHEST_PROTOCOL)
 		chain_file.close()
 		os.chdir(self.path)
 
@@ -264,17 +211,8 @@ class Book:
 		"""
 
 		log.info('Saving chains ...')
-		for chain in self.chains:
+		for chain in self:
 			self.save_chain(chain)
-
-
-	## --------------------------------------------------------
-	def sort_chains(self):
-		"""
-		sort the chains from most recently modified to oldest
-		"""
-
-		self.chains.sort(key=lambda chain: chain.modified_time, reverse=True)
 
 
 

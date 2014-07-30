@@ -8,7 +8,6 @@
 import cmd, readline, os, sys, pickle, glob
 import logging as log
 from book import Book
-from chain import Chain
 
 ## =======================================================
 ## Define the two types of completers
@@ -30,7 +29,7 @@ class CommandLine(cmd.Cmd):
 
 		cmd.Cmd.__init__(self)
 		self.prompt = 'kBook > '
-		self.book   = Book(preferences)
+		self.book   = Book('book', preferences)
 
 
 
@@ -131,17 +130,7 @@ class CommandLine(cmd.Cmd):
 		             Type \'cd ..\' to go back
 		"""
 
-		if arg == '..':
-			if len(self.book.parent_locations) > 0:
-				self.book.location = self.book.parent_locations[-1]
-				self.book.parent_locations.pop()
-			else:
-				log.error('Already at top level.')
-		else:
-			new_location = self.book.location.cd(arg)
-			if new_location:
-				self.book.parent_locations.append(self.book.location)
-				self.book.location = new_location
+		self.book.location = self.book.location.cd(arg)
 
 
 
@@ -157,10 +146,10 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
-	def do_set(self, arg):
+	def do_pref(self, arg):
 		"""
-		set <pref_index> <new_pref_value> : Set a new value for a preference, referred to by index.
-		                                    Leave no argument  to list the current preferences and associated indices.
+		pref <pref_index> <new_pref_value> : Set a new value for a preference, referred to by index.
+		                                     Leave no argument  to list the current preferences and associated indices.
 		"""
 
 		## Print list of preferences if not arguments are passed

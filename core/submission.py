@@ -9,22 +9,24 @@
 import os
 import logging as log
 from subprocess import Popen, PIPE
+from navigable import Navigable
 
 ## =======================================================
-class Submission:
+class Submission(Navigable):
 	"""
 	A class to handle the submission of a single grid
 	command
 	"""
 
 	## -------------------------------------------------------
-	def __init__(self, preferences, input_dataset, command, path):
+	def __init__(self, name, parent, input_dataset, command, path):
 		"""
 		Constructor
 		"""
 
+		Navigable.__init__(self, name, parent)
+
 		self.path             = path
-		self.preferences      = preferences
 		self.command          = command
 		self.input_dataset    = input_dataset
 		self.output_dataset   = ''
@@ -44,16 +46,8 @@ class Submission:
 		log.info('output dataset   : {0}'.format(self.output_dataset))
 		log.info('status           : {0}'.format(self.status))
 		log.info('current panda ID : {0}'.format(self.current_panda_id))
-		log.info('command          : {0}'.format(self.command))
+		log.info('command          : {0} {1}'.format(self.command, self.parent.parent.parent.preferences.panda_options))
 		log.info('-'*40)
-
-
-	## -------------------------------------------------------
-	def cd(self, locator=''):
-		"""
-		does nothing
-		"""
-		return False
 
 
 	## --------------------------------------------------------
@@ -62,14 +56,14 @@ class Submission:
 		submits the one submission
 		"""
 
-		if not self.status == 'not submitted':
-			log.info('already submitted, skipping.')
-			return
+		# if not self.status == 'not submitted':
+		# 	log.info('already submitted, skipping.')
+		# 	return
 
 		os.chdir(self.path)
 
 		## Finish constructing the command
-		command = '{0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.preferences.panda_options)
+		command = '{0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.parent.parent.parent.preferences.panda_options)
 
 		log.info('='*40)
 		log.info('Submitting ...')
