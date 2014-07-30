@@ -253,11 +253,12 @@ class CommandLine(cmd.Cmd):
 	## -------------------------------------------------------
 	def do_exit(self, arg):
 		"""
-		exit : Exit kBook.
+		exit <saving> : Exit kBook. saving = \'nosave\' to avoid saving the session.
 		"""
 
-		self.book.save_chains()
-		self.book.save_preferences()
+		if not arg == 'nosave':
+			self.book.save_chains()
+			self.book.save_preferences()
 
 		log.info('Goodbye')
 		sys.exit(1)

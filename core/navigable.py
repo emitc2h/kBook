@@ -48,7 +48,8 @@ class Navigable(list):
 			'reverse',
 			'sort',
 			'legend_string',
-			'ls_pattern'
+			'ls_pattern',
+			'index'
 			]
 
 		self.legend_string = 'index : name'

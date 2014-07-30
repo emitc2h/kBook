@@ -62,9 +62,9 @@ class Submission(Navigable):
 		submits the one submission
 		"""
 
-		# if not self.status == 'not submitted':
-		# 	log.info('already submitted, skipping.')
-		# 	return
+		if not self.status == 'not submitted':
+			log.info('already submitted, skipping.')
+			return
 
 		os.chdir(self.path)
 
@@ -92,6 +92,9 @@ class Submission(Navigable):
 			self.status = 'submitted'
 		else:
 			self.status = 'error'
+
+		## save parent chain
+		self.parent.parent.parent.save_chain(self.parent.parent)
 
 
 
