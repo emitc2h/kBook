@@ -31,6 +31,12 @@ class Chain(Navigable):
 		self.path = path
 		self.creation_time = time.time()
 		self.modified_time = time.time()
+		self.private += [
+			'submit',
+			'update',
+			'create_job',
+			'append_job'
+		]
 
 		self.create_job(input_file_path, initial_job_type, **kwargs)
 

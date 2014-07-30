@@ -33,6 +33,12 @@ class Submission(Navigable):
 		self.current_panda_id = -1
 		self.past_panda_ids   = []
 		self.status           = 'not submitted'
+		self.private += [
+			'submit',
+		]
+
+		self.legend_string = 'index : name                 : status               : input dataset'
+		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<20} : {3:<50}', 'index', 'name', 'status', 'input_dataset')
 
 
 	## -------------------------------------------------------

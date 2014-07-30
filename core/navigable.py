@@ -28,6 +28,28 @@ class Navigable(list):
 		self.index         = -1
 		self.creation_time = time.time()
 		self.modified_time = time.time()
+		self.comment       = ''
+		self.private       = [
+			'rebuild_hierarchy',
+			'locate',
+			'cd',
+			'ls',
+			'get',
+			'set',
+			'parent',
+			'private',
+			'sort_by_time',
+			'append',
+			'count',
+			'extend',
+			'insert',
+			'pop',
+			'remove',
+			'reverse',
+			'sort',
+			'legend_string',
+			'ls_pattern'
+			]
 
 		self.legend_string = 'index : name'
 		self.ls_pattern    = ('{0:<5} : {1:<20}', 'index', 'name')
@@ -102,18 +124,22 @@ class Navigable(list):
 			current_navigable = current_navigable.parent
 
 		if not locator:
-			log.info('In {0} : '.format(navigable_path))
-			log.info('-'*40)
-			log.info(self.legend_string)
-			log.info('- '*20)
+			try:
+				log.info('In {0} : '.format(navigable_path))
+				log.info('-'*40)
+				log.info(self[0].legend_string)
+				log.info('- '*20)
+			except IndexError:
+				log.error('{0} is empty'.format(self.name))
+				return
 			for i, navigable in enumerate(self):
 
 				## Gather arguments
 				args = []
-				for i in range(len(self.ls_pattern)-1):
-					args.append(getattr(navigable, self.ls_pattern[i+1]))
+				for i in range(len(navigable.ls_pattern)-1):
+					args.append(getattr(navigable, navigable.ls_pattern[i+1]))
 
-				log.info(self.ls_pattern[0].format(*args))
+				log.info(navigable.ls_pattern[0].format(*args))
 
 			log.info('-'*40)
 
@@ -169,6 +195,56 @@ class Navigable(list):
 		or a child
 		"""
 
+		if not locator and not attribute:
+			log.info('{0} attributes are:'.format(self.name))
+			log.info('-'*40)
+			for att in dir(self):
+				if '__' in att: continue
+				if att in self.private: continue
+				if '_time' in att:
+					log.info('{0:<20} = {1:<30}'.format(att, time.ctime(getattr(self, att))))
+				else:
+					log.info('{0:<20} = {1:<30}'.format(att, getattr(self, att)))
+			return
+
+		elif locator == 'self':
+			try:
+				if '_time' in attribute:
+					log.info('{0:<20} = {1:<30}'.format(attribute, time.ctime(getattr(self, attribute))))
+				else:
+					log.info('{0:<20} = {1:<30}'.format(attribute, getattr(self, attribute)))
+			except AttributeError:
+				log.error('{0} is not an attribute of {1}'.format(attribute, self.name))
+				return
+
+		elif locator == 'all' and not attribute:
+			if len(self) == 0:
+				log.error('No lower hierarchy.')
+				return
+			for navigable in self:
+				navigable.get()
+
+		elif locator == 'all':
+			if len(self) == 0:
+				log.error('No lower hierarchy.')
+				return
+			for navigable in self:
+				navigable.get('self', attribute)
+
+
+		elif not attribute:
+			i, navigable = self.locate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			navigable.get()
+		else:
+			i, navigable = self.locate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			navigable.get('self', attribute)
+
 
 	## --------------------------------------------------------
 	def set(self, locator='', attribute='', value=''):
@@ -176,6 +252,55 @@ class Navigable(list):
 		Set the value for a given parameter of either the current object
 		or a child
 		"""
+
+		if attribute in self.private:
+			log.error('{0} is a private attribute.'.format(attribute))
+			return
+
+		## Some value interpretation
+		if   value == 'False':	  value = False
+		elif value == 'True' :    value = True
+		else:
+			try:
+				value = int(value)
+			except ValueError:
+				try:
+					value = float(value)
+				except ValueError:
+					pass
+
+		if locator == 'all':
+			for navigable in self:
+				if attribute in dir(navigable):
+					setattr(navigable, attribute, value)
+					log.info('Setting {0} to \'{1}]\' for {2}'.format(attribute, value, navigable.name))
+				else:
+					log.error('{0} has no attribute called {1}'.format(self[0].name, attribute))
+					return
+
+		elif locator == 'self':
+			if attribute in dir(self):
+				setattr(self, attribute, value)
+				log.info('Setting {0} to \'{1}\; for {2}'.format(attribute, value, self.name))
+			else:
+				log.error('{0} has no attribute called {1}'.format(self.name, attribute))
+				return
+
+		else:
+			i, navigable = self.locate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			if attribute in dir(navigable):
+				setattr(navigable, attribute, value)
+				log.info('Setting {0} to \'{1}\' for {2}'.format(attribute, value, navigable.name))
+			else:
+				log.error('{0} has no attribute called {1}'.format(navigable.name, attribute))
+				return
+
+
+
+
 
 
 

@@ -135,6 +135,62 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
+	def do_get(self, arg):
+		"""
+		get <index> <attribute> : Print the specified attribute of the object of the given index.
+                                  Leave the attribute empty to print all attributes.
+                                  Use <index> = \'self\' to refer to the current object.
+                                  Use <index> ] \'all\' to refer to all objects at once in the current object.
+		"""
+
+		arguments = arg.split(' ')
+		index = ''
+		attribute = ''
+		if len(arguments) < 1:
+			log.error('provide at least an index.')
+			return
+		elif len(arguments) > 2:
+			log.error('too many arguments. provide at most an index and an attribute.')
+			return
+		elif len(arguments) == 1:
+			index = arguments[0]
+		else:
+			index = arguments[0]
+			attribute = arguments[1]
+
+		self.book.location.get(index, attribute)
+
+
+	## -------------------------------------------------------
+	def do_set(self, arg):
+		"""
+		set <index> <attribute> <value> : Set the specified attribute of the object of the given index to value.
+                                          Leave the attribute empty to print all attributes.
+                                          Use <index> = \'self\' to refer to the current object.
+                                          Use <index> = \'all\' to refer to all objects at once in the current object.
+		"""
+
+		arguments = arg.split(' ')
+		index = ''
+		attribute = ''
+		value = ''
+		if len(arguments) < 3:
+			log.error('provide an index, an attribute and a value.')
+			return
+		elif len(arguments) > 3:
+			index = arguments[0]
+			attribute = arguments[1]
+			value = ' '.join(arguments[2:])
+		else:
+			index = arguments[0]
+			attribute = arguments[1]
+			value = arguments[2]
+
+		self.book.location.set(index, attribute, value)
+
+
+
+	## -------------------------------------------------------
 	def do_submit(self, arg):
 		"""
 		submit <index> : submit a chain, job or submission
@@ -188,6 +244,7 @@ class CommandLine(cmd.Cmd):
 
 			log.info('Set value of {0} to {1}'.format(pref, value))
 			self.book.preferences[pref] = value
+			self.book.preferences.update()
 
 
 

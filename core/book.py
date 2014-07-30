@@ -37,6 +37,18 @@ class Book(Navigable):
 		self.preferences      = preferences
 		self.location         = self
 
+		self.private += [
+			'prepare',
+			'preferences',
+			'submit',
+			'save_preferences',
+			'save_chain',
+			'save_chains',
+			'create_chain',
+			'submit',
+			'location'
+		]
+
 		self.prepare()
 
 

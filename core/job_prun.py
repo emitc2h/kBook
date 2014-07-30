@@ -33,6 +33,9 @@ class JobPrun(Job):
 
 		self.type         = 'prun'
 
+		self.legend_string = 'index : name                 : type         : script_name'
+		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<12} : {3:<50}', 'index', 'name', 'type', 'script_name')
+
 
 	## --------------------------------------------------------
 	def create_directory(self):

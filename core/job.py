@@ -32,6 +32,13 @@ class Job(Navigable):
 		self.path             = path
 		self.input_file_path  = input_file_path
 		self.command          = ''
+		self.private += [
+			'submit',
+			'read_input_file',
+			'create_directory',
+			'construct_command',
+			'generate_output_dataset_names',
+		]
 
 		self.create_directory()
 		self.construct_command()
