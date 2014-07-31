@@ -24,7 +24,7 @@ class Submission(Navigable):
 		Constructor
 		"""
 
-		Navigable.__init__(self, name, parent)
+		Navigable.__init__(self, name, parent, '')
 
 		self.path             = path
 		self.command          = command
@@ -52,8 +52,27 @@ class Submission(Navigable):
 		log.info('output dataset   : {0}'.format(self.output_dataset))
 		log.info('status           : {0}'.format(self.status))
 		log.info('current panda ID : {0}'.format(self.current_panda_id))
-		log.info('command          : {0} {1}'.format(self.command, self.parent.parent.parent.preferences.panda_options))
+		log.info('command          : {0} {1}'.format(self.command, self.compile_panda_options()))
 		log.info('-'*40)
+
+
+	## --------------------------------------------------------
+	def compile_panda_options(self):
+		"""
+		Gather all the panda options from upstream in the hierarchy
+		"""
+
+		current_navigable = self
+		panda_options = []
+
+		while not current_navigable is None:
+			if current_navigable.panda_options:
+				panda_options += current_navigable.panda_options.split(' ')
+			current_navigable = current_navigable.parent
+
+		panda_options += self.parent.parent.parent.preferences.panda_options.split(' ')
+
+		return ' '.join(panda_options)
 
 
 	## --------------------------------------------------------
@@ -69,7 +88,7 @@ class Submission(Navigable):
 		os.chdir(self.path)
 
 		## Finish constructing the command
-		command = '{0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.parent.parent.parent.preferences.panda_options)
+		command = '{0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.compile_panda_options())
 
 		log.info('='*40)
 		log.info('Submitting ...')
@@ -86,7 +105,8 @@ class Submission(Navigable):
 				self.current_panda_id = int(line.split(':')[-1])
 
 		log.info(pout)
-		log.info(perr)
+		if not perr is None:
+			log.error(perr)
 
 		if (perr is None) or (not 'ERROR' in pout):
 			self.status = 'submitted'

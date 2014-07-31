@@ -18,7 +18,7 @@ class Navigable(list):
 	"""
 
 	## -------------------------------------------------------
-	def __init__(self, name, parent):
+	def __init__(self, name, parent, panda_options):
 		"""
 		Constructor
 		"""
@@ -26,6 +26,7 @@ class Navigable(list):
 		self.name          = name
 		self.parent        = parent
 		self.index         = -1
+		self.panda_options = panda_options
 		self.creation_time = time.time()
 		self.modified_time = time.time()
 		self.comment       = ''
@@ -275,6 +276,7 @@ class Navigable(list):
 				if attribute in dir(navigable):
 					setattr(navigable, attribute, value)
 					log.info('Setting {0} to \'{1}]\' for {2}'.format(attribute, value, navigable.name))
+					self.modified_time = time.time()
 				else:
 					log.error('{0} has no attribute called {1}'.format(self[0].name, attribute))
 					return
@@ -283,6 +285,7 @@ class Navigable(list):
 			if attribute in dir(self):
 				setattr(self, attribute, value)
 				log.info('Setting {0} to \'{1}\; for {2}'.format(attribute, value, self.name))
+				self.modified_time = time.time()
 			else:
 				log.error('{0} has no attribute called {1}'.format(self.name, attribute))
 				return
@@ -295,9 +298,32 @@ class Navigable(list):
 			if attribute in dir(navigable):
 				setattr(navigable, attribute, value)
 				log.info('Setting {0} to \'{1}\' for {2}'.format(attribute, value, navigable.name))
+				self.modified_time = time.time()
 			else:
 				log.error('{0} has no attribute called {1}'.format(navigable.name, attribute))
 				return
+
+
+	## --------------------------------------------------------
+	def submit(self, locator=''):
+		"""
+		Submit jobs
+		"""
+
+		if not locator:
+			for navigable in self:
+				navigable.submit()
+		elif locator == 'all':
+			for navigable in self:
+				navigable.submit()
+		elif locator == 'self':
+			self.submit()
+		else:
+			i, navigable = self.locate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			navigable.submit()
 
 
 

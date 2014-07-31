@@ -81,10 +81,11 @@ class CommandLine(cmd.Cmd):
 		input_file_path = self.ask_for_path('create : please provide path to list of input datasets')
 
 		## job type specific input
-		script_path  = ''
-		use_root     = False
-		root_version = ''
-		output       = ''
+		script_path   = ''
+		use_root      = False
+		root_version  = ''
+		output        = ''
+		panda_options = ''
 
 		if job_type == 'prun':
 			script_path = self.ask_for_path('create : prun : please provide path to the script to be executed')
@@ -94,12 +95,14 @@ class CommandLine(cmd.Cmd):
 				root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 5.34.18) > ')
 				if not root_version: root_version = '5.34.18'
 			output = raw_input('kBook : create : prun : provide names of output files to be stored (comma-separated) > ')
+			panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
 
 
 		self.book.create_chain(
 			chain_name,
 			job_type,
 			input_file_path,
+			panda_options,
 			script_path=script_path,
 			use_root=use_root,
 			root_version=root_version,

@@ -26,7 +26,7 @@ class Book(Navigable):
 		Constructor
 		"""
 
-		Navigable.__init__(self, name, None)
+		Navigable.__init__(self, name, None, '')
 
 		log.info('='*40)
 		log.info('Welcome to kBook 2.0.0!')
@@ -139,6 +139,7 @@ class Book(Navigable):
 				chain = pickle.load(chain_file)
 				self.append(chain)
 				chain_file.close()
+			os.chdir(self.path)
 		else:
 			log.debug('    No chains to load.')
 
@@ -157,20 +158,6 @@ class Book(Navigable):
 		log.debug('')
 
 
-
-	## --------------------------------------------------------
-	def submit(self, locator=''):
-		"""
-		submits a chain
-		"""
-
-		if not locator:
-			log.error('Cannot submit all the chains at once, specify a chain index.')
-		else:
-			i, chain = self.locate(locator)
-			chain.submit()
-
-
 	## --------------------------------------------------------
 	def save_preferences(self):
 		"""
@@ -185,7 +172,7 @@ class Book(Navigable):
 
 
 	## --------------------------------------------------------
-	def create_chain(self, name, chain_type, input_file_path, **kwargs):
+	def create_chain(self, name, chain_type, input_file_path, panda_options, **kwargs):
 		"""
 		Create a chain
 		"""
@@ -198,7 +185,8 @@ class Book(Navigable):
 			log.error('Could not create chain with name {0}, another chain with the same name already exists.'.format(name))
 			return
 
-		new_chain = Chain(name, self, chain_path, chain_type, input_file_path, **kwargs)
+
+		new_chain = Chain(name, self, panda_options, chain_path, chain_type, input_file_path, **kwargs)
 		self.save_chain(new_chain)
 		self.append(new_chain)
 

@@ -24,7 +24,7 @@ class Job(Navigable):
 		Constructor
 		"""
 
-		Navigable.__init__(self, name, parent)
+		Navigable.__init__(self, name, parent, '')
 
 		self.version          = 0
 		self.status           = 'not submitted'
@@ -56,28 +56,6 @@ class Job(Navigable):
 		lines = f.readlines()
 		for i, line in enumerate(lines):
 			self.append(Submission('submission{0}'.format(str(i).zfill(4)), self, line.rstrip('\n'), self.command, self.path))
-
-
-	## --------------------------------------------------------
-	def submit(self, locator=''):
-		"""
-		lists the jobs in the chain
-		"""
-
-		if not locator:
-			for submission in self:
-				submission.submit()
-		else:
-			try:
-				index = int(locator)
-			except ValueError:
-				log.error('Please provide a submission index')
-				return
-	
-			try:
-				self[index].submit() 
-			except IndexError:
-				log.error('The index provided must from 0 to {0}'.format(len(self.jobs)-1))
 
 
 	## -------------------------------------------------------

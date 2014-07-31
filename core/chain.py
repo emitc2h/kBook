@@ -20,12 +20,12 @@ class Chain(Navigable):
 
 
 	## -------------------------------------------------------
-	def __init__(self, name, parent, path, initial_job_type, input_file_path, **kwargs):
+	def __init__(self, name, parent, panda_options, path, initial_job_type, input_file_path, **kwargs):
 		"""
 		Constructor
 		"""
 
-		Navigable.__init__(self, name, parent)
+		Navigable.__init__(self, name, parent, panda_options)
 
 		self.name = name
 		self.path = path
@@ -47,29 +47,6 @@ class Chain(Navigable):
 		"""
 		Update the chain's information
 		"""
-
-
-	## --------------------------------------------------------
-	def submit(self, locator=''):
-		"""
-		Submit jobs
-		"""
-
-		self.modified_time = time.time()
-		if not locator:
-			for job in self:
-				job.submit()
-		else:
-			try:
-				index = int(locator)
-			except ValueError:
-				log.error('Please provide a job index')
-				return
-	
-			try:
-				self[index].submit() 
-			except IndexError:
-				log.error('The index provided must from 0 to {0}'.format(len(self)-1))
 
 
 	## --------------------------------------------------------
