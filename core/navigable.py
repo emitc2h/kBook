@@ -335,7 +335,7 @@ class Navigable(list):
 
 
 	## --------------------------------------------------------
-	def retrieve(self, locator='', one_file=True):
+	def retrieve(self, one_file=True):
 		"""
 		Retrieve output datasets
 		"""

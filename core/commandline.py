@@ -227,7 +227,7 @@ class CommandLine(cmd.Cmd):
 			log.error('wrong arguments, provide index and one_file')
 			return
 
-		self.book.location.retrieve(locator, one_file)
+		self.book.location.retrieve(one_file)
 
 
 	## -------------------------------------------------------
