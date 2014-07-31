@@ -31,6 +31,7 @@ class Navigable(list):
 		self.creation_time = time.time()
 		self.modified_time = time.time()
 		self.comment       = ''
+		self.hide          = 1
 		self.private       = [
 			'rebuild_hierarchy',
 			'locate',
@@ -52,7 +53,8 @@ class Navigable(list):
 			'legend_string',
 			'ls_pattern',
 			'index',
-			'retrieve'
+			'retrieve',
+			'submit'
 			]
 
 		self.legend_string = 'index : name'
@@ -107,7 +109,7 @@ class Navigable(list):
 		sort the children by modified time
 		"""
 
-		self.sort(key=lambda navigable: navigable.modified_time, reverse=True)
+		self.sort(key=lambda navigable: navigable.modified_time*navigable.hide, reverse=True)
 		for i, navigable in enumerate(self):
 			navigable.index = i
 
@@ -138,10 +140,13 @@ class Navigable(list):
 				return
 			for i, navigable in enumerate(self):
 
+				## skip hidden
+				if self.hide < 0: continue
+
 				## Gather arguments
 				args = []
-				for i in range(len(navigable.ls_pattern)-1):
-					args.append(getattr(navigable, navigable.ls_pattern[i+1]))
+				for j in range(len(navigable.ls_pattern)-1):
+					args.append(getattr(navigable, navigable.ls_pattern[j+1]))
 
 				log.info(navigable.ls_pattern[0].format(*args))
 

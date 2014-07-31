@@ -9,11 +9,10 @@
 import os, shutil
 import logging as log
 from submission import Submission
-from navigable import Navigable
 from versioned import Versioned
 
 ## =======================================================
-class Job(Navigable, Versioned):
+class Job(Versioned):
 	"""
 	A class to contain a single job comfiguration, but to
 	be used on many input datasets
@@ -25,8 +24,7 @@ class Job(Navigable, Versioned):
 		Constructor
 		"""
 
-		Versioned.__init__(self)
-		Navigable.__init__(self, name, parent, '')
+		Versioned.__init__(self, name, parent, '')
 
 		self.status           = 'not submitted'
 		self.type             = ''
@@ -38,6 +36,9 @@ class Job(Navigable, Versioned):
 			'create_directory',
 			'construct_command',
 			'generate_output_dataset_names',
+			'next',
+			'previous'
+			'copy'
 		]
 
 		self.create_directory()

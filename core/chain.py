@@ -10,11 +10,10 @@
 import os, time
 import logging as log
 from job_prun import JobPrun
-from navigable import Navigable
 from versioned import Versioned
 
 ## =======================================================
-class Chain(Navigable, Versioned):
+class Chain(Versioned):
 	"""
 	A class to contain a chain of jobs
 	"""
@@ -26,8 +25,7 @@ class Chain(Navigable, Versioned):
 		Constructor
 		"""
 
-		Versioned.__init__(self)
-		Navigable.__init__(self, name, parent, panda_options)
+		Versioned.__init__(self, name, parent, panda_options)
 
 		self.name = name
 		self.path = path
@@ -35,7 +33,10 @@ class Chain(Navigable, Versioned):
 		self.modified_time = time.time()
 		self.private += [
 			'create_job',
-			'append_job'
+			'append_job',
+			'previous',
+			'next',
+			'copy'
 		]
 
 		self.create_job(input_file_path, initial_job_type, **kwargs)
@@ -86,3 +87,10 @@ class Chain(Navigable, Versioned):
 		"""
 
 		log.error('Cannot retrieve output datasets from chain : {0}'.format(self.name))
+
+
+	## ---------------------------------------------------------
+	def recreate(self):
+		"""
+		recreates the chain, and the underlying jobs
+		"""
