@@ -177,7 +177,7 @@ class Book(Navigable):
 		Create a chain
 		"""
 
-		chain_path = os.path.join(self.path, name)
+		chain_path = os.path.join(self.path, '{0}_v0'.format(name))
 
 		try:
 			os.mkdir(chain_path)
@@ -213,6 +213,15 @@ class Book(Navigable):
 		log.info('Saving chains ...')
 		for chain in self:
 			self.save_chain(chain)
+
+
+	## ---------------------------------------------------------
+	def retrieve(self, locator='', one_file=True):
+		"""
+		Does nothing for a chain
+		"""
+
+		log.error('Cannot retrieve output datasets from book : {0}'.format(self.name))
 
 
 

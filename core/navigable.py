@@ -8,6 +8,7 @@
 
 import time
 import logging as log
+from subprocess import Popen, PIPE
 
 ## =======================================================
 class Navigable(list):
@@ -50,7 +51,8 @@ class Navigable(list):
 			'sort',
 			'legend_string',
 			'ls_pattern',
-			'index'
+			'index',
+			'retrieve'
 			]
 
 		self.legend_string = 'index : name'
@@ -275,7 +277,7 @@ class Navigable(list):
 			for navigable in self:
 				if attribute in dir(navigable):
 					setattr(navigable, attribute, value)
-					log.info('Setting {0} to \'{1}]\' for {2}'.format(attribute, value, navigable.name))
+					log.info('Setting {0} to \'{1}\' for {2}'.format(attribute, value, navigable.name))
 					self.modified_time = time.time()
 				else:
 					log.error('{0} has no attribute called {1}'.format(self[0].name, attribute))
@@ -284,7 +286,7 @@ class Navigable(list):
 		elif locator == 'self':
 			if attribute in dir(self):
 				setattr(self, attribute, value)
-				log.info('Setting {0} to \'{1}\; for {2}'.format(attribute, value, self.name))
+				log.info('Setting {0} to \'{1}\' for {2}'.format(attribute, value, self.name))
 				self.modified_time = time.time()
 			else:
 				log.error('{0} has no attribute called {1}'.format(self.name, attribute))
@@ -324,6 +326,31 @@ class Navigable(list):
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return
 			navigable.submit()
+
+
+	## --------------------------------------------------------
+	def retrieve(self, locator='', one_file=True):
+		"""
+		Retrieve output datasets
+		"""
+
+		## Check for DQ2 tools
+		p = Popen(args = 'echo $DQ2_HOME', stdout=PIPE, shell = True)
+		pout = p.communicate()[0]
+
+		if pout == '\n':
+			log.error('cannot proceed, dq2 is not setup: setupATLAS; localSetupDQ2Client')
+			return False
+
+		if not self.status == 'finished':
+			log.warning('dataset is not finished, do you want to proceed (y/n) ?')
+			answer = raw_input('kBook > ')
+			if answer == 'y':
+				return True
+			else:
+				return False
+
+		return True
 
 
 

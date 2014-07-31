@@ -202,6 +202,31 @@ class CommandLine(cmd.Cmd):
 		self.book.location.submit(arg)
 
 
+	## -------------------------------------------------------
+	def do_retrieve(self, arg):
+		"""
+		retrieve <index> <onefile> : retrieve datasets from the grid
+		                             set onefile to True/False if only 1 or all the files of the datasets are to be retrieved
+		"""
+
+		arguments = arg.split(' ')
+		locator = ''
+		one_file = True
+		if len(arguments) == 1:
+			locator = arguments[0]
+		elif len(arguments) == 2:
+			locator = arguments[0]
+			if arguments[1] == 'True':
+				one_file = True
+			elif arguments[1] == 'False':
+				one_file = False
+			else:
+				log.error('does not understand <onefile> argument, provide \'True\' or \'False\'.')
+				return
+
+		self.book.location.retrieve(locator, one_file)
+
+
 
 
 	## -------------------------------------------------------

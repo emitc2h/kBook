@@ -10,9 +10,10 @@ import os, shutil
 import logging as log
 from submission import Submission
 from navigable import Navigable
+from versioned import Versioned
 
 ## =======================================================
-class Job(Navigable):
+class Job(Navigable, Versioned):
 	"""
 	A class to contain a single job comfiguration, but to
 	be used on many input datasets
@@ -24,16 +25,15 @@ class Job(Navigable):
 		Constructor
 		"""
 
+		Versioned.__init__(self)
 		Navigable.__init__(self, name, parent, '')
 
-		self.version          = 0
 		self.status           = 'not submitted'
 		self.type             = ''
 		self.path             = path
 		self.input_file_path  = input_file_path
 		self.command          = ''
 		self.private += [
-			'submit',
 			'read_input_file',
 			'create_directory',
 			'construct_command',
@@ -88,5 +88,24 @@ class Job(Navigable):
 		"""
 		must be implemented by the derived classes
 		"""
+
+
+	## -------------------------------------------------------
+	def retrieve(self, locator='', one_file=True):
+		"""
+		Retrieve output datasets
+		"""
+
+		if (not locator) or (locator == 'all'):
+			for submission in self:
+				submission.retrieve('', one_file)
+		else:
+			i, submission = self.locate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			submission.retrieve('', one_file)
+
+
 
 		

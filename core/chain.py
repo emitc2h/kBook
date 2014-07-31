@@ -11,9 +11,10 @@ import os, time
 import logging as log
 from job_prun import JobPrun
 from navigable import Navigable
+from versioned import Versioned
 
 ## =======================================================
-class Chain(Navigable):
+class Chain(Navigable, Versioned):
 	"""
 	A class to contain a chain of jobs
 	"""
@@ -25,6 +26,7 @@ class Chain(Navigable):
 		Constructor
 		"""
 
+		Versioned.__init__(self)
 		Navigable.__init__(self, name, parent, panda_options)
 
 		self.name = name
@@ -32,21 +34,11 @@ class Chain(Navigable):
 		self.creation_time = time.time()
 		self.modified_time = time.time()
 		self.private += [
-			'submit',
-			'update',
 			'create_job',
 			'append_job'
 		]
 
 		self.create_job(input_file_path, initial_job_type, **kwargs)
-
-
-
-	## --------------------------------------------------------
-	def update(self):
-		"""
-		Update the chain's information
-		"""
 
 
 	## --------------------------------------------------------
@@ -61,7 +53,7 @@ class Chain(Navigable):
 			use_root     = kwargs['use_root']
 			root_version = kwargs['root_version']
 			output       = kwargs['output']
-			path         = os.path.join(self.path, 'job0000')
+			path         = os.path.join(self.path, 'job0000_v0')
 
 			new_jobprun = JobPrun(
 				script_path,
@@ -85,3 +77,12 @@ class Chain(Navigable):
 		"""
 
 		self.modified_time = time.time()
+
+
+	## ---------------------------------------------------------
+	def retrieve(self, locator='', one_file=True):
+		"""
+		Does nothing for a chain
+		"""
+
+		log.error('Cannot retrieve output datasets from chain : {0}'.format(self.name))

@@ -32,7 +32,7 @@ class JobPrun(Job):
 		Job.__init__(self, *args, **kwargs)
 
 		self.type         = 'prun'
-		
+
 		self.legend_string = 'index : name                 : type         : script_name'
 		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<12} : {3:<50}', 'index', 'name', 'type', 'script_name')
 
@@ -69,7 +69,8 @@ class JobPrun(Job):
 		for submission in self:
 			outDS = 'user.{0}.{1}.{2}.{3}'.format(
 				self.parent.parent.preferences.user,
-				submission.input_dataset.replace('/', ''),
+				submission.input_dataset.replace('/', '').replace('user.mtm.', ''),
+
 				self.script_name.replace('.py', ''),
 				'v{0}'.format(self.version)
 				)

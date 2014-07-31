@@ -34,7 +34,7 @@ class Submission(Navigable):
 		self.past_panda_ids   = []
 		self.status           = 'not submitted'
 		self.private += [
-			'submit',
+			'compile_panda_options',
 		]
 
 		self.legend_string = 'index : name                 : status               : input dataset'
@@ -115,6 +115,45 @@ class Submission(Navigable):
 
 		## save parent chain
 		self.parent.parent.parent.save_chain(self.parent.parent)
+
+
+	## --------------------------------------------------------
+	def retrieve(self, locator='', one_file=True):
+		"""
+		retrieve the output dataset
+		"""
+
+		if not Navigable.retrieve(self, locator, one_file): return
+
+		output_path = os.path.join(self.parent.path, self.output_dataset)
+
+		try:
+			os.mkdir(output_path)
+		except OSError:
+			pass
+
+		os.chdir(output_path)
+
+		if one_file:
+			p = Popen(args = 'dq2-get -n 1 {0}/'.format(self.output_dataset), stdout=PIPE, shell=True)
+			p.wait()
+			pout, perr = p.communicate()
+
+			log.info(pout)
+			if not perr is None:
+				log.error(perr)
+				return
+		else:
+			p = Popen(args = 'dq2-get {0}/'.format(self.output_dataset), stdout=PIPE, shell=True)
+			p.wait()
+			pout, perr = p.communicate()
+
+			log.info(pout)
+			if not perr is None:
+				log.error(perr)
+				return
+
+
 
 
 
