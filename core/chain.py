@@ -33,11 +33,11 @@ class Chain(Versioned):
 		self.modified_time = time.time()
 		self.private += [
 			'create_job',
-			'append_job',
-			'previous',
-			'next',
-			'copy'
+			'append_job'
 		]
+
+		self.legend_string = 'index : name                 : status               : version'
+		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<20} : {3:<5}', 'index', 'name', 'status', 'version')
 
 		self.create_job(input_file_path, initial_job_type, **kwargs)
 
@@ -71,7 +71,7 @@ class Chain(Versioned):
 
 
 	## ---------------------------------------------------------
-	def append_job(self, job_type):
+	def append_job(self, job_type, **kwargs):
 		"""
 		Appends a new job to the chain, using the output files
 		of the previous job as the new input
@@ -92,5 +92,24 @@ class Chain(Versioned):
 	## ---------------------------------------------------------
 	def recreate(self):
 		"""
-		recreates the chain, and the underlying jobs
+		recreates the jobs
 		"""
+
+		del self[:]
+
+		for job in self.previous:
+			if job.hide < 0: continue
+			new_job = None
+			if job.type == 'prun':
+				new_job = JobPrun(
+					job.script_path,
+					job.use_root,
+					job.root_version,
+					job.output,
+					job.name,
+					job.parent.get_latest(),
+					os.path.join(self.path, '{0}_v0'.format(job.name)),
+					job.input_file_path
+					)
+
+			self.append(new_job)

@@ -30,6 +30,7 @@ class Navigable(list):
 		self.panda_options = panda_options
 		self.creation_time = time.time()
 		self.modified_time = time.time()
+		self.status        = ''
 		self.comment       = ''
 		self.hide          = 1
 		self.private       = [
@@ -132,16 +133,16 @@ class Navigable(list):
 		if not locator:
 			try:
 				log.info('In {0} : '.format(navigable_path))
-				log.info('-'*40)
+				log.info('-'*len(self[0].legend_string))
 				log.info(self[0].legend_string)
-				log.info('- '*20)
+				log.info('- '*(len(self[0].legend_string)/2))
 			except IndexError:
 				log.error('{0} is empty'.format(self.name))
 				return
 			for i, navigable in enumerate(self):
 
 				## skip hidden
-				if self.hide < 0: continue
+				if navigable.hide < 0: continue
 
 				## Gather arguments
 				args = []
@@ -150,7 +151,7 @@ class Navigable(list):
 
 				log.info(navigable.ls_pattern[0].format(*args))
 
-			log.info('-'*40)
+			log.info('-'*len(self[0].legend_string))
 
 		elif locator == 'all':
 			if len(self) == 0:

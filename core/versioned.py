@@ -28,7 +28,17 @@ class Versioned(Navigable):
 		self.version  = 0
 		self.previous = None
 		self.next     = None
+		self.current  = True
 		self.path     = ''
+		self.private += [
+			'copy',
+			'previous',
+			'next',
+			'show_versions',
+			'recreate',
+			'get_latest',
+			'get_version'
+		]
 
 
 	## --------------------------------------------------------
@@ -47,6 +57,7 @@ class Versioned(Navigable):
 		new_version.version = self.version + 1
 		self.next = new_version
 		self.hide = -1
+		self.current = False
 		new_version.previous = self
 		new_version.path = self.path.replace('v{0}'.format(self.version), 'v{0}'.format(new_version.version))
 		os.mkdir(new_version.path)
@@ -74,14 +85,67 @@ class Versioned(Navigable):
 
 		versions.reverse()
 
+		log.info('{0} versions:'.format(self.name))
 		log.info('-'*40)
 		log.info('version : creation time')
 		log.info('- '*20)
 		for version in versions:
-			if self.version == version.version:
+			if version.current:
 				log.info('{0:<7} : {1:<24} *'.format(version.version, time.ctime(version.creation_time)))
 			else:
 				log.info('{0:<7} : {1:<24}'.format(version.version, time.ctime(version.creation_time)))
+		log.info('-'*40)
+
+
+	## ---------------------------------------------------------
+	def get_version(self, locator=-1):
+		"""
+		returns the specified version, while hiding all others
+		"""
+
+		current_version = self
+		versions = []
+		while not current_version is None:
+			versions.append(current_version)
+			current_version = current_version.previous
+
+		current_version = self.next
+		versions.reverse()
+		while not current_version is None:
+			versions.append(current_version)
+			current_version = current_version.next
+
+		versions.reverse()
+
+		new_current_version = None
+
+		if 0 <= locator < len(versions):
+			for version in versions:
+				if version.version == locator:
+					version.hide = 1
+					version.current = True
+					new_current_version = version
+				else:
+					version.hide = -1
+					version.current = False
+			return new_current_version
+		else:
+			log.error('Version {0} for {1} does not exist.'.format(locator, self.name))
+				
+
+
+	## ---------------------------------------------------------
+	def get_latest(self):
+		"""
+		get the latest version
+		"""
+
+		current_version = self
+		while not current_version is None:
+			if current_version.next is None:
+				return current_version
+			current_version = current_version.next
+		return self
 
 
 	## ---------------------------------------------------------

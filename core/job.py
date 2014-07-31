@@ -35,11 +35,11 @@ class Job(Versioned):
 			'read_input_file',
 			'create_directory',
 			'construct_command',
-			'generate_output_dataset_names',
-			'next',
-			'previous'
-			'copy'
+			'generate_output_dataset_names'
 		]
+
+		self.legend_string = 'index : name                 : status               : version'
+		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<20} : {3:<5}', 'index', 'name', 'status', 'version')
 
 		self.create_directory()
 		self.construct_command()
@@ -106,6 +106,20 @@ class Job(Versioned):
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return
 			submission.retrieve('', one_file)
+
+
+	## --------------------------------------------------------
+	def recreate(self):
+		"""
+		recreates the submissions
+		"""
+
+		del self[:]
+
+		self.create_directory()
+		self.construct_command()
+		self.read_input_file()
+		self.generate_output_dataset_names()
 
 
 

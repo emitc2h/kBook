@@ -33,8 +33,8 @@ class JobPrun(Job):
 
 		self.type         = 'prun'
 
-		self.legend_string = 'index : name                 : type         : script_name'
-		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<12} : {3:<50}', 'index', 'name', 'type', 'script_name')
+		self.legend_string = 'index : name                 : type         : script_name    : version'
+		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<12} : {3:<20} : {4:<5}', 'index', 'name', 'type', 'script_name', 'version')
 
 
 	## --------------------------------------------------------

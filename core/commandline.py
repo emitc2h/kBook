@@ -30,7 +30,6 @@ class CommandLine(cmd.Cmd):
 		cmd.Cmd.__init__(self)
 		self.prompt = 'kBook > '
 		self.book   = Book('book', preferences)
-		self.copy_mode = False
 
 
 
@@ -61,10 +60,6 @@ class CommandLine(cmd.Cmd):
 		"""
 		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'pathena-algo\', \'pathena-trf\'
 		"""
-
-		if self.copy_mode:
-			log.error('Cannot call \'create\' in copy mode. Only \'get\' and \'set\'')
-			return
 
 		## Interpret arguments
 		arguments = arg.split(' ')
@@ -126,10 +121,6 @@ class CommandLine(cmd.Cmd):
 		                 - the individual submissions inside a job
 		"""
 
-		if self.copy_mode:
-			log.error('Cannot call \'ls\' in copy mode. Only \'get\' and \'set\'')
-			return
-
 		self.book.location.ls(arg)
 
 
@@ -141,10 +132,6 @@ class CommandLine(cmd.Cmd):
 		cd <index> : navigate the chains, jobs and submission.
 		             Type \'cd ..\' to go back
 		"""
-
-		if self.copy_mode:
-			log.error('Cannot call \'cd\' in copy mode. Only \'get\' and \'set\'')
-			return
 
 		self.book.location = self.book.location.cd(arg)
 
@@ -212,10 +199,6 @@ class CommandLine(cmd.Cmd):
 		submit <index> : submit a chain, job or submission
 		"""
 
-		if self.copy_mode:
-			log.error('Cannot call \'submit\' in copy mode. Only \'get\' and \'set\'')
-			return
-
 		self.book.location.submit(arg)
 
 
@@ -244,6 +227,9 @@ class CommandLine(cmd.Cmd):
 			else:
 				log.error('does not understand <onefile> argument, provide \'True\' or \'False\'.')
 				return
+		else:
+			log.error('wrong arguments, provide index and one_file')
+			return
 
 		self.book.location.retrieve(locator, one_file)
 
@@ -255,10 +241,6 @@ class CommandLine(cmd.Cmd):
 		               enters copy mode, in which the copied object can be modified before being recreated
 		"""
 
-		if self.copy_mode:
-			log.error('Cannot call \'copy\' in copy mode. Only \'get\' and \'set\'')
-			return
-
 		current_is_versioned = False
 		children_are_versioned   = False
 
@@ -270,39 +252,28 @@ class CommandLine(cmd.Cmd):
 
 		try:
 			if len(self.book.location) > 0:
-				v = self.book.location.version
+				v = self.book.location[0].version
 				children_are_versioned = True
 		except AttributeError:
 			pass
 
 		if (not arg) and current_is_versioned:
 			spawn = self.book.location.copy()
-			self.copy_mode = True
-			self.prompt = 'kBook : copy > '
-			self.book.location.parent.append(spawn)
-			self.book.location = spawn
+			if not spawn is None:
+				self.book.location.parent.append(spawn)
+				self.book.location = spawn
+				self.book.location.recreate()
 		elif arg and children_are_versioned:
 			i, child = self.book.location.locate(arg)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
 				return
 			spawn = child.copy()
-			self.copy_mode = True
-			self.prompt = 'kBook : copy > '
-			self.book.location.append(spawn)
+			if not spawn is None:
+				self.book.location.append(spawn)
+				spawn.recreate()
 		else:
 			log.error('Cannot copy object.')
-
-
-		## -------------------------------------------------------
-	def do_done(self, arg):
-		"""
-		done : terminates copy mode
-		"""
-
-		self.copy_mode = False
-		self.prompt = 'kBook > '
-
 
 
 
@@ -312,10 +283,6 @@ class CommandLine(cmd.Cmd):
 		versions <index> : copies a chain or a job, incrementing the version number and hiding the original
 		"""
 
-		if self.copy_mode:
-			log.error('Cannot call \'versions\' in copy mode. Only \'get\' and \'set\'')
-			return
-
 		current_is_versioned = False
 		children_are_versioned   = False
 
@@ -327,7 +294,7 @@ class CommandLine(cmd.Cmd):
 
 		try:
 			if len(self.book.location) > 0:
-				v = self.book.location.version
+				v = self.book.location[0].version
 				children_are_versioned = True
 		except AttributeError:
 			pass
@@ -345,15 +312,67 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
+	def do_switch(self, arg):
+		"""
+		switch <index> <version> : switch object to given version
+		"""
+
+		arguments = arg.split(' ')
+		if len(arguments) == 1:
+			locator = 'self'
+			try:
+				version = int(arguments[0])
+			except ValueError:
+				log.error('<version> must be an integer')
+				return
+
+		elif len(arguments) == 2:
+			locator = arguments[0]
+			try:
+				version = int(arguments[1])
+			except ValueError:
+				log.error('<version> must be an integer')
+				return
+		
+		else:
+			log.error('wrong arguments.')
+			return
+
+
+		current_is_versioned = False
+		children_are_versioned   = False
+
+		try:
+			v = self.book.location.version
+			current_is_versioned = True
+		except AttributeError:
+			pass
+
+		try:
+			if len(self.book.location) > 0:
+				v = self.book.location[0].version
+				children_are_versioned = True
+		except AttributeError:
+			pass
+
+		if locator == 'self' and current_is_versioned:
+			self.book.location = self.book.location.get_version(version)
+		elif locator and children_are_versioned:
+			i, child = self.book.location.locate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
+				return
+			child.get_version(version)
+		else:
+			log.error('Object is not versioned.')
+
+
+	## -------------------------------------------------------
 	def do_pref(self, arg):
 		"""
 		pref <pref_index> <new_pref_value> : Set a new value for a preference, referred to by index.
 		                                     Leave no argument  to list the current preferences and associated indices.
 		"""
-
-		if self.copy_mode:
-			log.error('Cannot call \'pref\' in copy mode. Only \'get\' and \'set\'')
-			return
 
 		## Print list of preferences if not arguments are passed
 		if not arg:
@@ -394,9 +413,6 @@ class CommandLine(cmd.Cmd):
 			self.book.preferences.update()
 
 
-
-
-
 	## -------------------------------------------------------
 	def do_exit(self, arg):
 		"""
@@ -409,9 +425,6 @@ class CommandLine(cmd.Cmd):
 
 		log.info('Goodbye')
 		sys.exit(1)
-
-
-
 
 
 	## -------------------------------------------------------
