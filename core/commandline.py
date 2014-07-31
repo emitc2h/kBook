@@ -209,10 +209,6 @@ class CommandLine(cmd.Cmd):
 		                             set onefile to True/False if only 1 or all the files of the datasets are to be retrieved
 		"""
 
-		if self.copy_mode:
-			log.error('Cannot call \'retrieve\' in copy mode. Only \'get\' and \'set\'')
-			return
-
 		arguments = arg.split(' ')
 		locator = ''
 		one_file = True
@@ -333,7 +329,7 @@ class CommandLine(cmd.Cmd):
 			except ValueError:
 				log.error('<version> must be an integer')
 				return
-		
+
 		else:
 			log.error('wrong arguments.')
 			return
@@ -362,7 +358,7 @@ class CommandLine(cmd.Cmd):
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
 				return
-			child.get_version(version)
+			new_child = child.get_version(version)
 		else:
 			log.error('Object is not versioned.')
 
