@@ -25,9 +25,10 @@ class Preferences(dict):
 		self['panda-options']  = ''
 
 		## logging services
-		self['write-log-file'] = True
-		self['log-file-level'] = 'DEBUG'
-		self['dated-log-file'] = False
+		self['write-log-file']  = True
+		self['log-file-level']  = 'DEBUG'
+		self['dated-log-file']  = False
+		self['update-on-start'] = False
 
 		## Record keys in list
 		self.list = sorted(self.keys())

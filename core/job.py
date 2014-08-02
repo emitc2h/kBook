@@ -38,6 +38,8 @@ class Job(Versioned):
 			'generate_output_dataset_names'
 		]
 
+		self.level = 2
+
 		self.legend_string = 'index : name                 : status               : version'
 		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<20} : {3:<5}', 'index', 'name', 'status', 'version')
 
@@ -89,23 +91,6 @@ class Job(Versioned):
 		"""
 		must be implemented by the derived classes
 		"""
-
-
-	## -------------------------------------------------------
-	def retrieve(self, locator='', one_file=True):
-		"""
-		Retrieve output datasets
-		"""
-
-		if (not locator) or (locator == 'all'):
-			for submission in self:
-				submission.retrieve('', one_file)
-		else:
-			i, submission = self.locate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			submission.retrieve('', one_file)
 
 
 	## --------------------------------------------------------

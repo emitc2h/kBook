@@ -9,6 +9,7 @@
 import time
 import logging as log
 from subprocess import Popen, PIPE
+import definitions
 
 ## =======================================================
 class Navigable(list):
@@ -30,7 +31,7 @@ class Navigable(list):
 		self.panda_options = panda_options
 		self.creation_time = time.time()
 		self.modified_time = time.time()
-		self.status        = ''
+		self.status        = 0
 		self.comment       = ''
 		self.hide          = 1
 		self.private       = [
@@ -54,9 +55,13 @@ class Navigable(list):
 			'legend_string',
 			'ls_pattern',
 			'index',
-			'retrieve',
-			'submit'
+			'submit',
+			'status_string',
+			'evaluate_status',
+			'update'
 			]
+
+		self.level = 0
 
 		self.legend_string = 'index : name'
 		self.ls_pattern    = ('{0:<5} : {1:<20}', 'index', 'name')
@@ -147,7 +152,11 @@ class Navigable(list):
 				## Gather arguments
 				args = []
 				for j in range(len(navigable.ls_pattern)-1):
-					args.append(getattr(navigable, navigable.ls_pattern[j+1]))
+					if navigable.ls_pattern[j+1] == 'status':
+						args.append(definitions.kbook_status[navigable.status])
+
+					else:
+						args.append(getattr(navigable, navigable.ls_pattern[j+1]))
 
 				log.info(navigable.ls_pattern[0].format(*args))
 
@@ -212,17 +221,17 @@ class Navigable(list):
 				if '__' in att: continue
 				if att in self.private: continue
 				if '_time' in att:
-					log.info('{0:<20} = {1:<30}'.format(att, time.ctime(getattr(self, att))))
+					log.info('{0:<23} = {1:<30}'.format(att, time.ctime(getattr(self, att))))
 				else:
-					log.info('{0:<20} = {1:<30}'.format(att, getattr(self, att)))
+					log.info('{0:<23} = {1:<30}'.format(att, getattr(self, att)))
 			return
 
 		elif locator == 'self':
 			try:
 				if '_time' in attribute:
-					log.info('{0:<20} = {1:<30}'.format(attribute, time.ctime(getattr(self, attribute))))
+					log.info('{0:<23} = {1:<30}'.format(attribute, time.ctime(getattr(self, attribute))))
 				else:
-					log.info('{0:<20} = {1:<30}'.format(attribute, getattr(self, attribute)))
+					log.info('{0:<23} = {1:<30}'.format(attribute, getattr(self, attribute)))
 			except AttributeError:
 				log.error('{0} is not an attribute of {1}'.format(attribute, self.name))
 				return
@@ -270,6 +279,19 @@ class Navigable(list):
 		## Some value interpretation
 		if   value == 'False':	  value = False
 		elif value == 'True' :    value = True
+		elif value.startswith('[') and value.endswith(']'):
+			items = value.lstrip('[').rstrip(']').split(',')
+			value_list = []
+			for item in items:
+				try:
+					value_list.append(int(item))
+				except ValueError:
+					try:
+						value_list.append(float(item))
+					except ValueError:
+						value_list.append(item)
+			value = value_list
+
 		else:
 			try:
 				value = int(value)
@@ -334,29 +356,59 @@ class Navigable(list):
 			navigable.submit()
 
 
-	## --------------------------------------------------------
-	def retrieve(self, one_file=True):
+	## ---------------------------------------------------------
+	def status_string(self):
 		"""
-		Retrieve output datasets
+		returns a human readable string for the status
 		"""
 
-		## Check for DQ2 tools
-		p = Popen(args = 'echo $DQ2_HOME', stdout=PIPE, shell = True)
-		pout = p.communicate()[0]
+		return definitions.kbook_status[self.status]
 
-		if pout == '\n':
-			log.error('cannot proceed, dq2 is not setup: setupATLAS; localSetupDQ2Client')
-			return False
 
-		if not self.status == 'finished':
-			log.warning('dataset is not finished, do you want to proceed (y/n) ?')
-			answer = raw_input('kBook > ')
-			if answer == 'y':
-				return True
-			else:
-				return False
+	## ---------------------------------------------------------
+	def update(self, locator=''):
+		"""
+		update the status
+		"""
 
-		return True
+		log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
+
+		if not locator:
+			for navigable in self:
+				navigable.update()
+			self.evaluate_status()
+		elif locator == 'all':
+			for navigable in self:
+				navigable.update()
+			self.evaluate_status()
+		elif locator == 'self':
+			self.update()
+		else:
+			i, navigable = self.locate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			navigable.update()
+
+
+
+
+	## ---------------------------------------------------------
+	def evaluate_status(self):
+		"""
+		Evaluates the status from the children
+		"""
+
+		if len(self) == 0:
+			return self.status
+		else:
+			minimum_status = 5
+			for navigable in self:
+				navigable_status = navigable.evaluate_status()
+				if navigable_status < minimum_status:
+					minimum_status = navigable_status
+			self.status = minimum_status
+			return self.status
 
 
 

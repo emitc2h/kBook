@@ -36,6 +36,8 @@ class Chain(Versioned):
 			'append_job'
 		]
 
+		self.level = 1
+
 		self.legend_string = 'index : name                 : status               : version'
 		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<20} : {3:<5}', 'index', 'name', 'status', 'version')
 
@@ -78,15 +80,6 @@ class Chain(Versioned):
 		"""
 
 		self.modified_time = time.time()
-
-
-	## ---------------------------------------------------------
-	def retrieve(self, locator='', one_file=True):
-		"""
-		Does nothing for a chain
-		"""
-
-		log.error('Cannot retrieve output datasets from chain : {0}'.format(self.name))
 
 
 	## ---------------------------------------------------------

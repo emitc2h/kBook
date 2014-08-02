@@ -10,6 +10,8 @@ import os
 import logging as log
 from subprocess import Popen, PIPE
 from navigable import Navigable
+from pandatools import Client, PdbUtils
+import definitions
 
 ## =======================================================
 class Submission(Navigable):
@@ -26,16 +28,21 @@ class Submission(Navigable):
 
 		Navigable.__init__(self, name, parent, '')
 
-		self.path             = path
-		self.command          = command
-		self.input_dataset    = input_dataset
-		self.output_dataset   = ''
-		self.current_panda_id = -1
-		self.past_panda_ids   = []
-		self.status           = 'not submitted'
+		self.path                 = path
+		self.command              = command
+		self.input_dataset        = input_dataset
+		self.output_dataset       = ''
+		self.current_panda_job_id = []
+		self.past_panda_job_ids   = []
+		self.finished_processes   = 0
+		self.total_processes      = 0
+		self.status               = 0
 		self.private += [
 			'compile_panda_options',
+			'parse_submission_output'
 		]
+
+		self.level = 3
 
 		self.legend_string = 'index : name                 : status               : input dataset'
 		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<20} : {3:<50}', 'index', 'name', 'status', 'input_dataset')
@@ -51,7 +58,7 @@ class Submission(Navigable):
 		log.info('input dataset    : {0}'.format(self.input_dataset))
 		log.info('output dataset   : {0}'.format(self.output_dataset))
 		log.info('status           : {0}'.format(self.status))
-		log.info('current panda ID : {0}'.format(self.current_panda_id))
+		log.info('current panda ID : {0}'.format(self.current_panda_job_id))
 		log.info('command          : {0} {1}'.format(self.command, self.compile_panda_options()))
 		log.info('-'*40)
 
@@ -102,56 +109,70 @@ class Submission(Navigable):
 		pout_lines = pout.split('\n')
 		for line in pout_lines:
 			if 'JobsetID' in line:
-				self.current_panda_id = int(line.split(':')[-1])
+				new_panda_job_id = int(line.split(':')[-1])
+				if not self.current_panda_job_id:
+					self.current_panda_job_id = new_panda_job_id
+				else:
+					self.past_panda_job_ids.append(self.current_panda_job_id)
+					self.current_panda_job_id = new_panda_job_id
 
 		log.info(pout)
 		if not perr is None:
 			log.error(perr)
 
 		if (perr is None) or (not 'ERROR' in pout):
-			self.status = 'submitted'
-		else:
-			self.status = 'error'
-
-		## save parent chain
-		self.parent.parent.parent.save_chain(self.parent.parent)
+			self.status.current = 3
 
 
 	## --------------------------------------------------------
-	def retrieve(self, locator='', one_file=True):
+	def update(self):
 		"""
-		retrieve the output dataset
+		Calls the grid to update the status of the submission
 		"""
 
-		if not Navigable.retrieve(self, locator, one_file): return
+		log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
 
-		output_path = os.path.join(self.parent.path, self.output_dataset)
+		panda_jobs = {}
 
-		try:
-			os.mkdir(output_path)
-		except OSError:
-			pass
-
-		os.chdir(output_path)
-
-		if one_file:
-			p = Popen(args = 'dq2-get -n 1 {0}/'.format(self.output_dataset), stdout=PIPE, shell=True)
-			p.wait()
-			pout, perr = p.communicate()
-
-			log.info(pout)
-			if not perr is None:
-				log.error(perr)
+		for job_id in self.current_panda_job_id:
+			status, pandaIDstatus = Client.getPandIDsWithJobID(job_id, verbose=False)
+			if status > 0:
+				log.error('Cannot update, panda job ID may be corrupted or proxy may be void.')
 				return
-		else:
-			p = Popen(args = 'dq2-get {0}/'.format(self.output_dataset), stdout=PIPE, shell=True)
-			p.wait()
-			pout, perr = p.communicate()
+			panda_jobs.update(pandaIDstatus)
 
-			log.info(pout)
-			if not perr is None:
-				log.error(perr)
-				return
+		self.parse_panda_status(panda_jobs)
+
+
+	## --------------------------------------------------------
+	def parse_submission_output(self, submission_output):
+		"""
+		Parses the submission output and return relevant values
+		"""
+
+
+	## ---------------------------------------------------------
+	def parse_panda_status(self, panda_jobs):
+		"""
+		parses the panda dictionary and produces the job status and other useful pieces of information
+		"""
+
+		minimum_status = 5
+		finished = 0
+		total    = 0
+		for job in panda_jobs.itervalues():
+			total += 1
+			status = definitions.kbook_status_from_panda[job[0]]
+			if status == 4: finished += 1
+			if status < minimum_status:
+				minimum_status = status
+
+		self.status             = minimum_status
+		self.total_processes    = total
+		self.finished_processes = finished
+
+
+
 
 
 

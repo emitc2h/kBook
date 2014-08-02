@@ -24,14 +24,29 @@ class CommandLine(cmd.Cmd):
 	## -------------------------------------------------------
 	def __init__(self, preferences):
 		"""
-		Constructeur
+		Constructor
 		"""
+
+		log.info('='*40)
+		log.info('Welcome to kBook 2.0.0!')
+		log.info('-'*40)
 
 		cmd.Cmd.__init__(self)
 		self.prompt = 'kBook > '
-		self.book   = Book('book', preferences)
+		try:
+			book_file = open('.book/book.kbk')
+			self.book = pickle.load(book_file)
+			book_file.close()
+		except IOError:
+			log.info('Creating book...')
+			try:
+				os.mkdir('.book')
+			except OSError:
+				pass
 
+			self.book   = Book('book', preferences)
 
+		self.book.prepare()
 
 
 	## --------------------------------------------------------
@@ -44,7 +59,6 @@ class CommandLine(cmd.Cmd):
 		self.cmdloop()
 
 
-
 	## -------------------------------------------------------
 	def help_help(self):
 		"""
@@ -52,7 +66,6 @@ class CommandLine(cmd.Cmd):
 		"""
 
 		log.info('help : Summon the main help menu.')
-
 
 
 	## -------------------------------------------------------
@@ -70,7 +83,7 @@ class CommandLine(cmd.Cmd):
 		job_type   = arguments[0]
 		chain_name = arguments[1]
 
-		if not chain_name.isalnum():
+		if not chain_name.replace('_', '').replace('-', '').isalnum():
 			log.error('Please provide a chain name that is alphanumeric (example: \'mychain456\').')
 			return
 
@@ -109,7 +122,7 @@ class CommandLine(cmd.Cmd):
 			output=output
 			)
 
-
+		self.save_book()
 
 
 	## -------------------------------------------------------
@@ -124,8 +137,6 @@ class CommandLine(cmd.Cmd):
 		self.book.location.ls(arg)
 
 
-
-
 	## -------------------------------------------------------
 	def do_cd(self, arg):
 		"""
@@ -134,7 +145,6 @@ class CommandLine(cmd.Cmd):
 		"""
 
 		self.book.location = self.book.location.cd(arg)
-
 
 
 	## -------------------------------------------------------
@@ -192,7 +202,6 @@ class CommandLine(cmd.Cmd):
 		self.book.location.set(index, attribute, value)
 
 
-
 	## -------------------------------------------------------
 	def do_submit(self, arg):
 		"""
@@ -200,34 +209,7 @@ class CommandLine(cmd.Cmd):
 		"""
 
 		self.book.location.submit(arg)
-
-
-	## -------------------------------------------------------
-	def do_retrieve(self, arg):
-		"""
-		retrieve <index> <onefile> : retrieve datasets from the grid
-		                             set onefile to True/False if only 1 or all the files of the datasets are to be retrieved
-		"""
-
-		arguments = arg.split(' ')
-		locator = ''
-		one_file = True
-		if len(arguments) == 1:
-			locator = arguments[0]
-		elif len(arguments) == 2:
-			locator = arguments[0]
-			if arguments[1] == 'True':
-				one_file = True
-			elif arguments[1] == 'False':
-				one_file = False
-			else:
-				log.error('does not understand <onefile> argument, provide \'True\' or \'False\'.')
-				return
-		else:
-			log.error('wrong arguments, provide index and one_file')
-			return
-
-		self.book.location.retrieve(one_file)
+		self.save_book()
 
 
 	## -------------------------------------------------------
@@ -271,6 +253,7 @@ class CommandLine(cmd.Cmd):
 		else:
 			log.error('Cannot copy object.')
 
+		self.save_book()
 
 
 		## -------------------------------------------------------
@@ -410,14 +393,22 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
+	def do_update(self, arg):
+		"""
+		update <index> : updates the object of the given index
+		"""
+
+		self.book.location.update(arg)
+
+
+	## -------------------------------------------------------
 	def do_exit(self, arg):
 		"""
 		exit <saving> : Exit kBook. saving = \'nosave\' to avoid saving the session.
 		"""
 
 		if not arg == 'nosave':
-			self.book.save_chains()
-			self.book.save_preferences()
+			self.save_book()
 
 		log.info('Goodbye')
 		sys.exit(1)
@@ -458,6 +449,18 @@ class CommandLine(cmd.Cmd):
 
 		return absolute_path
 
+
+	## ---------------------------------------------------------
+	def save_book(self):
+		"""
+		Save the book
+		"""
+
+		self.book.save_preferences()
+		os.chdir(self.book.path)
+		book_file = open('book.kbk', 'w')
+		pickle.dump(self.book, book_file, pickle.HIGHEST_PROTOCOL)
+		book_file.close()
 
 
 

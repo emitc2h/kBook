@@ -12,6 +12,7 @@ from subprocess import Popen, PIPE
 from chain import Chain
 from preferences import Preferences
 from navigable import Navigable
+from pandatools import PsubUtils
 
 ## =======================================================
 class Book(Navigable):
@@ -28,11 +29,7 @@ class Book(Navigable):
 
 		Navigable.__init__(self, name, None, '')
 
-		log.info('='*40)
-		log.info('Welcome to kBook 2.0.0!')
-		log.info('-'*40)
-
-		self.path             = 'books'
+		self.path             = '.book'
 		self.cwd              = ''
 		self.preferences      = preferences
 		self.location         = self
@@ -49,7 +46,7 @@ class Book(Navigable):
 			'location'
 		]
 
-		self.prepare()
+		self.level = 0
 
 
 	## --------------------------------------------------------
@@ -82,14 +79,8 @@ class Book(Navigable):
 		## Check that PANDA is setup correctly
 		log.debug('Checking PANDA setup ...')
 
-		p = Popen(args = 'echo $PANDA_SYS', stdout=PIPE, shell = True)
-		pout_pan1 = p.communicate()[0]
-
-		p = Popen(args = 'echo $PATHENA_GRID_SETUP_SH', stdout=PIPE, shell = True)
-		pout_pan2 = p.communicate()[0]
-
 		## Terminate program, kBook cannot operate without a proper PANDA setup
-		if pout_pan1 == '\n' or pout_pan2 == '\n':
+		if (not os.environ.has_key('PANDA_SYS')) or (not os.environ.has_key('PATHENA_GRID_SETUP_SH')):
 			log.error('    Environment variables PANDA_SYS and/or PATHENA_GRID_SETUP_SH not set, please setup the panda tools (setupATLAS; localSetupPandaClient). Exiting.')
 			sys.exit()
 		else:
@@ -105,8 +96,8 @@ class Book(Navigable):
 		pout_voms, perr_voms = p.communicate()
  
 		if pout_voms.find('subject') == -1:
-			log.error('    Grid proxy is not set, (voms-proxy-init -voms atlas), Exiting.')
-			sys.exit()
+			log.error('    Grid proxy is not set, setup now:')
+			PsubUtils.checkGridProxy('',True,False)
  
 		pout_voms_lines = pout_voms.rstrip('\n').split('\n')
 
@@ -116,46 +107,19 @@ class Book(Navigable):
 
 
 		## - - - - - - - - - - - - - - - - - - - - - - - - 
-		## Load chains
-		log.debug('Loading chains ...')
-		os.chdir(self.path)
-		chain_dirs = os.listdir('.')
-		if not len(chain_dirs) == 0:
-			for chain_dir in chain_dirs:
-				log.debug('    ... loading {0}'.format(chain_dir))
-				chain_path = os.path.join(self.path, chain_dir)
-				os.chdir(chain_path)
-				try:
-					chain_file = open(os.path.join(chain_path, 'chain.kbk'))
-				except IOError:
-					log.error('    ... {0} is corrupted, skipping. Delete?'.format(chain_dir))
-					answer = raw_input('kBook :     (y/n) > ')
-					if answer == 'y':
-						shutil.rmtree(chain_path)
-						log.info('    ... deleted.')
-					else:
-						log.warning('    ... will not delete.')
-					continue
-				chain = pickle.load(chain_file)
-				self.append(chain)
-				chain_file.close()
-			os.chdir(self.path)
-		else:
-			log.debug('    No chains to load.')
-
-		log.debug('    ... rebuilding hierarchy')
-		self.rebuild_hierarchy()
-		log.debug('    ... done.')
-
-		log.debug('')
+		## Update book
+		if self.preferences.update_on_start:
+			log.debug('Updating everything ...')
+			self.update()
+			log.debug('')
 
 
 		## - - - - - - - - - - - - - - - - - - - - - - - - 
 		## Show preferences
 		log.debug('The current preferences are:')
-		for i, pref in enumerate(self.preferences.list):
-				log.debug('    {0:<5} : {1:<20} : {2}'.format(i, pref, self.preferences[pref]))
-		log.debug('')
+		self.preferences.print_all()
+
+		self.location = self
 
 
 	## --------------------------------------------------------
@@ -165,7 +129,6 @@ class Book(Navigable):
 		"""
 
 		os.chdir(self.cwd)
-		log.info('Saving preferences into .kPrefs ...')
 		preferences_file = open('.kPrefs', 'w')
 		pickle.dump(self.preferences, preferences_file)
 		preferences_file.close()
@@ -187,41 +150,7 @@ class Book(Navigable):
 
 
 		new_chain = Chain(name, self, panda_options, chain_path, chain_type, input_file_path, **kwargs)
-		self.save_chain(new_chain)
 		self.append(new_chain)
-
-
-	## --------------------------------------------------------
-	def save_chain(self, chain):
-		"""
-		Saves a single chain
-		"""
-
-		os.chdir(chain.path)
-		chain_file = open('chain.kbk', 'w')
-		pickle.dump(chain, chain_file, pickle.HIGHEST_PROTOCOL)
-		chain_file.close()
-		os.chdir(self.path)
-
-
-	## --------------------------------------------------------
-	def save_chains(self):
-		"""
-		Saves all chains
-		"""
-
-		log.info('Saving chains ...')
-		for chain in self:
-			self.save_chain(chain)
-
-
-	## ---------------------------------------------------------
-	def retrieve(self, locator='', one_file=True):
-		"""
-		Does nothing for a chain
-		"""
-
-		log.error('Cannot retrieve output datasets from book : {0}'.format(self.name))
 
 
 
