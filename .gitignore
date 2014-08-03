@@ -1,4 +1,4 @@
 *.pyc
 *.txt
 .kPrefs
-books/
+.book

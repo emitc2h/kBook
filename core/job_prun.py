@@ -72,7 +72,7 @@ class JobPrun(Job):
 				submission.input_dataset.replace('/', '').replace('user.mtm.', ''),
 
 				self.script_name.replace('.py', ''),
-				'v{0}'.format(self.version)
+				'v{0}.{1}'.format(self.parent.version, self.version)
 				)
 			submission.output_dataset = outDS
 

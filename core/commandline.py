@@ -5,7 +5,7 @@
 ## description : The command line interface             ##
 ##########################################################
 
-import cmd, readline, os, sys, pickle, glob
+import cmd, readline, os, sys, pickle, glob, shutil
 import logging as log
 from book import Book
 
@@ -47,6 +47,7 @@ class CommandLine(cmd.Cmd):
 			self.book   = Book('book', preferences)
 
 		self.book.prepare()
+		self.book.rebuild_hierarchy()
 
 
 	## --------------------------------------------------------
@@ -399,6 +400,34 @@ class CommandLine(cmd.Cmd):
 		"""
 
 		self.book.location.update(arg)
+
+
+	## -------------------------------------------------------
+	def do_delete(self, arg):
+		"""
+		delete <index> : deletes object of the given index
+		"""
+
+		navigable = self.book.location[int(arg)]
+
+		if not navigable.previous is None:
+			navigable.previous.hide = 1
+			navigable.previous.current = True
+			navigable.previous.next = navigable.next
+
+		shutil.rmtree(navigable.path)
+		self.book.location.remove(navigable)
+		del navigable
+
+
+	## -------------------------------------------------------
+	def do_save(self, arg):
+		"""
+		save : save the book
+		"""
+
+		log.info('Saving ...')
+		self.save_book()
 
 
 	## -------------------------------------------------------

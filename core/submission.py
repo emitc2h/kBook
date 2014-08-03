@@ -39,7 +39,7 @@ class Submission(Navigable):
 		self.status               = 0
 		self.private += [
 			'compile_panda_options',
-			'parse_submission_output'
+			'parse_panda_status'
 		]
 
 		self.level = 3
@@ -54,13 +54,13 @@ class Submission(Navigable):
 		prints out information about the submission
 		"""
 
-		log.info('-'*40)
+		log.info('-'*60)
 		log.info('input dataset    : {0}'.format(self.input_dataset))
 		log.info('output dataset   : {0}'.format(self.output_dataset))
-		log.info('status           : {0}'.format(self.status))
+		log.info('status           : {0}'.format(definitions.kbook_status[self.status]))
+		log.info('finished jobs    : {0}/{1}'.format(self.finished_processes, self.total_processes))
 		log.info('current panda ID : {0}'.format(self.current_panda_job_id))
-		log.info('command          : {0} {1}'.format(self.command, self.compile_panda_options()))
-		log.info('-'*40)
+		log.info('command          : {0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.compile_panda_options()))
 
 
 	## --------------------------------------------------------
@@ -88,8 +88,14 @@ class Submission(Navigable):
 		submits the one submission
 		"""
 
-		if not self.status == 'not submitted':
-			log.info('already submitted, skipping.')
+		self.update()
+
+		if self.status == 3:
+			log.info('already submitted, currently running.')
+			return
+
+		if self.status == 4:	
+			log.info('already submitted, finished.')
 			return
 
 		os.chdir(self.path)
@@ -106,22 +112,38 @@ class Submission(Navigable):
 		p.wait()
 		pout, perr = p.communicate()
 
+		already_done = False
+		JobID_found_one = False
+
 		pout_lines = pout.split('\n')
 		for line in pout_lines:
-			if 'JobsetID' in line:
+			if 'JobID' in line:
 				new_panda_job_id = int(line.split(':')[-1])
-				if not self.current_panda_job_id:
-					self.current_panda_job_id = new_panda_job_id
+				if self.status == 0:
+					if not JobID_found_one:
+						self.current_panda_job_id = [new_panda_job_id]
+						JobID_found_one = True
+					else:
+						self.current_panda_job_id.append(new_panda_job_id)
 				else:
-					self.past_panda_job_ids.append(self.current_panda_job_id)
-					self.current_panda_job_id = new_panda_job_id
+					if not JobID_found_one:
+						self.past_panda_job_ids.append(self.current_panda_job_id)
+						self.current_panda_job_id = [new_panda_job_id]
+						JobID_found_one = True
+					else:
+						self.current_panda_job_id.append(new_panda_job_id)
+
+
+		if 'Done. No jobs to be submitted' in pout:
+			already_done = True
+			self.status = 4
 
 		log.info(pout)
-		if not perr is None:
+		if not (perr is None):
 			log.error(perr)
 
-		if (perr is None) or (not 'ERROR' in pout):
-			self.status.current = 3
+		if (perr is None) and (not 'ERROR' in pout) and (not already_done):
+			self.status = 3
 
 
 	## --------------------------------------------------------
@@ -129,6 +151,10 @@ class Submission(Navigable):
 		"""
 		Calls the grid to update the status of the submission
 		"""
+
+		if not self.current_panda_job_id:
+			log.warning('{0}Not submitted yet, no panda job ID.'.format('    '*self.level))
+			return
 
 		log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
 
@@ -142,13 +168,6 @@ class Submission(Navigable):
 			panda_jobs.update(pandaIDstatus)
 
 		self.parse_panda_status(panda_jobs)
-
-
-	## --------------------------------------------------------
-	def parse_submission_output(self, submission_output):
-		"""
-		Parses the submission output and return relevant values
-		"""
 
 
 	## ---------------------------------------------------------

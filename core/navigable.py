@@ -371,7 +371,12 @@ class Navigable(list):
 		update the status
 		"""
 
-		log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
+		if self.hide == -1: return
+
+		if hasattr(self, 'version'):
+			log.debug('{0}updating {1} v{2} ...'.format('    '*self.level, self.name, self.version))
+		else:
+			log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
 
 		if not locator:
 			for navigable in self:
