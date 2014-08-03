@@ -61,6 +61,7 @@ class Submission(Navigable):
 		log.info('finished jobs    : {0}/{1}'.format(self.finished_processes, self.total_processes))
 		log.info('current panda ID : {0}'.format(self.current_panda_job_id))
 		log.info('command          : {0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.compile_panda_options()))
+		log.info('')
 
 
 	## --------------------------------------------------------

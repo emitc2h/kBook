@@ -30,6 +30,7 @@ class Book(Navigable):
 		Navigable.__init__(self, name, None, '')
 
 		self.path             = '.book'
+		self.download_path    = 'downloads'
 		self.cwd              = ''
 		self.preferences      = preferences
 		self.location         = self
@@ -61,13 +62,24 @@ class Book(Navigable):
 		## Make the path absolute
 		self.cwd = os.getcwd()
 		self.path = os.path.join(self.cwd, self.path)
+		self.download_path = os.path.join(self.cwd, self.download_path)
 
 		## - - - - - - - - - - - - - - - - - - - - - - - - 
-		## Make books directory if it doesn't exist
-		log.debug('Checking that \'books\' directory is there ...')
+		## Make directories if they don't exist
+		log.debug('Checking that \'.book\' directory is there ...')
 
 		try:
 			os.mkdir(self.path)
+			log.debug('    ... created')
+		except OSError:
+			log.debug('    ... already created')
+			pass
+		log.debug('')
+
+
+		log.debug('Checking that \'download\' directory is there ...')
+		try:
+			os.mkdir(self.download_path)
 			log.debug('    ... created')
 		except OSError:
 			log.debug('    ... already created')

@@ -396,6 +396,23 @@ class Navigable(list):
 			navigable.update()
 
 
+	## ---------------------------------------------------------
+	def generate_list(self, attribute, locator=''):
+		"""
+		generates a list containing a particular attribute of the lowest level navigable
+		"""
+
+		values = []
+
+		if hasattr(self, attribute):
+			return [getattr(self, attribute)]
+		else:
+			for navigable in self:
+				values += navigable.generate_list(attribute)
+			return values
+
+
+
 
 
 	## ---------------------------------------------------------

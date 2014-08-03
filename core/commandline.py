@@ -403,6 +403,39 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
+	def do_dq2get(self, arg):
+		"""
+		dq2get <index> : generates a dq2-get shell script in the kbook directory
+		"""
+
+		os.chdir(self.book.download_path)
+
+		if not arg:
+			if hasattr(self.book.location, 'version'):
+				script_name = '{0}.v{1}'.format(self.book.location.name, self.book.location.version)
+			else:
+				script_name = '{0}'.format(self.book.location.name)
+
+			try:
+				os.mkdir(script_name)
+			except OSError:
+				log.error('download directory {0} already exists.'.format(script_name))
+				return
+
+			os.chdir(os.path.join(self.book.download_path, script_name))
+
+			script = open('{0}.sh'.format(script_name), 'w')
+
+			output_datasets = self.book.location.generate_list('output_dataset')
+			for output_dataset in output_datasets:
+				script.write('dq2-get {0}/\n'.format(output_dataset))
+
+			script.close()
+
+		os.chdir(self.book.path)
+
+
+	## -------------------------------------------------------
 	def do_delete(self, arg):
 		"""
 		delete <index> : deletes object of the given index
