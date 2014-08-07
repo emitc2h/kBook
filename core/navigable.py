@@ -58,7 +58,8 @@ class Navigable(list):
 			'submit',
 			'status_string',
 			'evaluate_status',
-			'update'
+			'update',
+			'generate_list'
 			]
 
 		self.level = 0

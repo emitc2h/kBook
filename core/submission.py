@@ -89,14 +89,16 @@ class Submission(Navigable):
 		submits the one submission
 		"""
 
+		log.info('='*40)
+		log.info('Checking submission status ...')
 		self.update()
 
 		if self.status == 3:
-			log.info('already submitted, currently running.')
+			log.info('    already submitted, currently running.')
 			return
 
 		if self.status == 4:	
-			log.info('already submitted, finished.')
+			log.info('    already submitted, finished.')
 			return
 
 		os.chdir(self.path)
@@ -104,7 +106,6 @@ class Submission(Navigable):
 		## Finish constructing the command
 		command = '{0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.compile_panda_options())
 
-		log.info('='*40)
 		log.info('Submitting ...')
 		log.info('-'*40)
 		log.info(command)
@@ -145,6 +146,8 @@ class Submission(Navigable):
 
 		if (perr is None) and (not 'ERROR' in pout) and (not already_done):
 			self.status = 3
+
+		self.update()
 
 
 	## --------------------------------------------------------
