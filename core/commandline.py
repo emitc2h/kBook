@@ -428,7 +428,7 @@ class CommandLine(cmd.Cmd):
 
 			output_datasets = self.book.location.generate_list('output_dataset')
 			for output_dataset in output_datasets:
-				script.write('dq2-get {0}/\n'.format(output_dataset))
+				script.write('dq2-get {0}_{1}/\n'.format(output_dataset, 'histograms.root'))
 
 			script.close()
 
@@ -443,12 +443,17 @@ class CommandLine(cmd.Cmd):
 
 		navigable = self.book.location[int(arg)]
 
-		if not navigable.previous is None:
-			navigable.previous.hide = 1
-			navigable.previous.current = True
-			navigable.previous.next = navigable.next
+		if hasattr(navigable, 'version'):
+			if not navigable.previous is None:
+				navigable.previous.hide = 1
+				navigable.previous.current = True
+				navigable.previous.next = None
 
-		shutil.rmtree(navigable.path)
+		if not hasattr(navigable, 'command'):
+			try:
+				shutil.rmtree(navigable.path)
+			except OSError:
+				pass
 		self.book.location.remove(navigable)
 		del navigable
 

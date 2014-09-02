@@ -69,7 +69,7 @@ class JobPrun(Job):
 		for submission in self:
 			outDS = 'user.{0}.{1}.{2}.{3}'.format(
 				self.parent.parent.preferences.user,
-				submission.input_dataset.replace('/', '').replace('user.mtm.', '').replace('merge.NTUP_TAU.', '').replace('mc12_8TeV.', ''),
+				submission.input_dataset.replace('/', '').replace('user.mtm.', '').replace('merge.NTUP_TAU.', '').replace('mc12_8TeV.', '').replace('data12_8TeV.', '').replace('user.mtibbett.', '').replace('calibration_', '').replace('NUTP_IDVTXLUMI.', ''),
 				self.parent.name,
 				'v{0}.{1}'.format(self.parent.version, self.version)
 				)
