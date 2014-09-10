@@ -44,7 +44,7 @@ class Preferences(dict):
 		update data member values from dictionary
 		"""
 
-		if '{0}' in self['output-name-rules']:
+		if '{0}' in self['output-name-rules'] and not self['user'] == '':
 			self['output-name-rules'] = self['output-name-rules'].format(self['user'])
 
 		for key, value in self.iteritems():
