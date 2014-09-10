@@ -46,7 +46,7 @@ class CommandLine(cmd.Cmd):
 
 			self.book   = Book('book', preferences)
 
-		self.book.prepare()
+		self.book.prepare(preferences)
 		self.book.rebuild_hierarchy()
 
 
@@ -441,7 +441,11 @@ class CommandLine(cmd.Cmd):
 		delete <index> : deletes object of the given index
 		"""
 
-		navigable = self.book.location[int(arg)]
+		try:
+			navigable = self.book.location[int(arg)]
+		except IndexError:
+			log.error('No entry with index {0}'.format(arg))
+			return
 
 		if hasattr(navigable, 'version'):
 			if not navigable.previous is None:

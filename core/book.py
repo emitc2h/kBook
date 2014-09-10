@@ -51,13 +51,16 @@ class Book(Navigable):
 
 
 	## --------------------------------------------------------
-	def prepare(self):
+	def prepare(self, preferences):
 		"""
 		prepare kBook, load chains, check environment
 		"""
 
 		log.info('Preparing ...')
 		log.info('')
+
+		## Assign external preferences
+		self.preferences = preferences
 
 		## Make the path absolute
 		self.cwd = os.getcwd()

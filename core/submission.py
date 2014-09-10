@@ -44,8 +44,8 @@ class Submission(Navigable):
 
 		self.level = 3
 
-		self.legend_string = 'index : name                 : status               : input dataset'
-		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<20} : {3:<50}', 'index', 'name', 'status', 'input_dataset')
+		self.legend_string = 'index : name                 : status               : processes    : input dataset'
+		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<20} : {3:>5}/{4:<5}  : {5:<50}', 'index', 'name', 'status', 'finished_processes', 'total_processes', 'input_dataset')
 
 
 	## -------------------------------------------------------
@@ -159,9 +159,29 @@ class Submission(Navigable):
 
 		log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
 
-		status, new_jedi_task_dict = Client.getJediTaskDetails(self.jedi_task_dict, True, True)
+		slimmed_jedi_task_dict = {'jediTaskID' : self.jedi_task_dict['jediTaskID']}
+
+		status, new_jedi_task_dict = Client.getJediTaskDetails(slimmed_jedi_task_dict, True, True)
 		if not new_jedi_task_dict is None:
 			self.jedi_task_dict = new_jedi_task_dict
+
+		try:
+			statistics = self.jedi_task_dict['statistics']
+			statuses = statistics.split(',')
+			done  = 0
+			total = 0
+			for s in statuses:
+				label  = s.split('*')[0]
+				number = int(s.split('*')[-1])
+				if label == 'finished':
+					done += number
+				total += number
+
+			self.finished_processes = done
+			self.total_processes    = total		
+
+		except KeyError:
+			pass
 
 		try:
 			self.status = definitions.kbook_status_from_jedi[self.jedi_task_dict['status']]

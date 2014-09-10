@@ -25,10 +25,13 @@ class Preferences(dict):
 		self['panda-options']  = ''
 
 		## logging services
-		self['write-log-file']  = True
-		self['log-file-level']  = 'DEBUG'
-		self['dated-log-file']  = False
-		self['update-on-start'] = False
+		self['write-log-file']    = True
+		self['log-file-level']    = 'DEBUG'
+		self['dated-log-file']    = False
+		self['update-on-start']   = False
+
+		## Output file name preferences
+		self['output-name-rules'] = '"user.{0}.":"" "/":""'
 
 		## Record keys in list
 		self.list = sorted(self.keys())
@@ -40,6 +43,9 @@ class Preferences(dict):
 		"""
 		update data member values from dictionary
 		"""
+
+		if '{0}' in self['output-name-rules']:
+			self['output-name-rules'] = self['output-name-rules'].format(self['user'])
 
 		for key, value in self.iteritems():
 			setattr(self, key.replace('-', '_'), value)

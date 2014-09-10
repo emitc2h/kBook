@@ -20,6 +20,7 @@ try:
 	preferences = pickle.load(preferences_file)
 	preferences_file.close()
 except IOError:
+	print 'Creating new preferences (with default values) ...'
 	preferences = Preferences()
 except EOFError:
 	print 'WARNING: preferences weren\'t saved correctly (unrecoverable), creating new preferences ...'
