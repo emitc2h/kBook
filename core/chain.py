@@ -38,8 +38,8 @@ class Chain(Versioned):
 
 		self.level = 1
 
-		self.legend_string = 'index : name                      : status               : version'
-		self.ls_pattern    = ('{0:<5} : {1:<25} : {2:<20} : {3:<5}', 'index', 'name', 'status', 'version')
+		self.legend_string = 'index : name                      : status        : version'
+		self.ls_pattern    = ('{0:<5} : {1:<25} : {2:<22} : {3:<5}', 'index', 'name', 'status', 'version')
 
 		self.create_job(input_file_path, initial_job_type, **kwargs)
 
