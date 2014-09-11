@@ -27,7 +27,7 @@ class Navigable(list):
 
 		self.name          = name
 		self.parent        = parent
-		self.index         = -1
+		self.index         = 0
 		self.panda_options = panda_options
 		self.creation_time = time.time()
 		self.modified_time = time.time()
@@ -37,6 +37,7 @@ class Navigable(list):
 		self.private       = [
 			'rebuild_hierarchy',
 			'locate',
+			'navigate',
 			'ls',
 			'info',
 			'get',
@@ -88,7 +89,7 @@ class Navigable(list):
 
 		if len(self) == 0:
 			log.error('{0} does not have children'.format(self.name))
-			return self.index, self
+			return -1, self
 
 		## locator interpretation: name or index?
 		is_index = False
@@ -103,13 +104,13 @@ class Navigable(list):
 				return index, self[index]
 			except IndexError:
 				log.error('The index provided must from 0 to {0}'.format(len(self)-1))
-				return self.index, self
+				return -1, self
 		else:
 			for i, navigable in enumerate(self):
 				if navigable.name == locator: 
 					return i, navigable
 			log.error('Could not locate {0}'.format(locator))
-			return self.index, self
+			return -1, self
 
 
 	## --------------------------------------------------------
@@ -129,7 +130,7 @@ class Navigable(list):
 				return self.parent.index, self.parent
 			else:
 				log.error('{0} does not have a parent'.format(self.name))
-				return self.index, self
+				return -1, self
 
 
 		## Reference to navigable through path
@@ -142,7 +143,7 @@ class Navigable(list):
 				return index, current_navigable
 			except AttributeError:
 				log.error('{0} is an invalid path'.format(locator))
-				return self.index, self
+				return -1, self
 
 
 		## Reference to children in current navigable
@@ -176,7 +177,8 @@ class Navigable(list):
 
 		else:
 			## Obtain navigable to ls
-			index, current_navigable = self.navigate(locator)
+			i, current_navigable = self.navigate(locator)
+			if i < 0: return
 
 			## prints info if navigable has no children
 			if len(current_navigable) == 0:
@@ -245,16 +247,6 @@ class Navigable(list):
 					log.info('{0:<23} = {1:<30}'.format(att, getattr(self, att)))
 			return
 
-		elif locator == 'self':
-			try:
-				if '_time' in attribute:
-					log.info('{0:<23} = {1:<30}'.format(attribute, time.ctime(getattr(self, attribute))))
-				else:
-					log.info('{0:<23} = {1:<30}'.format(attribute, getattr(self, attribute)))
-			except AttributeError:
-				log.error('{0} is not an attribute of {1}'.format(attribute, self.name))
-				return
-
 		elif locator == 'all' and not attribute:
 			if len(self) == 0:
 				log.error('No lower hierarchy.')
@@ -271,13 +263,13 @@ class Navigable(list):
 
 
 		elif not attribute:
-			i, navigable = self.locate(locator)
+			i, navigable = self.navigate(locator)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return
 			navigable.get()
 		else:
-			i, navigable = self.locate(locator)
+			i, navigable = self.navigate(locator)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return
@@ -330,17 +322,8 @@ class Navigable(list):
 					log.error('{0} has no attribute called {1}'.format(self[0].name, attribute))
 					return
 
-		elif locator == 'self':
-			if attribute in dir(self):
-				setattr(self, attribute, value)
-				log.info('Setting {0} to \'{1}\' for {2}'.format(attribute, value, self.name))
-				self.modified_time = time.time()
-			else:
-				log.error('{0} has no attribute called {1}'.format(self.name, attribute))
-				return
-
 		else:
-			i, navigable = self.locate(locator)
+			i, navigable = self.navigate(locator)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return

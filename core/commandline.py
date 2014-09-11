@@ -154,25 +154,20 @@ class CommandLine(cmd.Cmd):
 		get <index> <attribute> : Print the specified attribute of the object of the given index.
                                   Leave the attribute empty to print all attributes.
                                   Use <index> = \'self\' to refer to the current object.
-                                  Use <index> ] \'all\' to refer to all objects at once in the current object.
+                                  Use <index> = \'all\' to refer to all objects at once in the current object.
 		"""
 
 		arguments = arg.split(' ')
-		index = ''
-		attribute = ''
-		if len(arguments) < 1:
-			log.error('provide at least an index.')
-			return
-		elif len(arguments) > 2:
-			log.error('too many arguments. provide at most an index and an attribute.')
-			return
-		elif len(arguments) == 1:
-			index = arguments[0]
-		else:
-			index = arguments[0]
-			attribute = arguments[1]
 
-		self.book.location.get(index, attribute)
+		if len(arguments) == 1:
+			argument = arguments[0]
+			self.book.location.get(argument)
+		elif len(arguments) == 2:
+			index     = arguments[0]
+			attribute = arguments[1]
+			self.book.location.get(index, attribute)
+		else:
+			log.error('Too many arguments, type \'help get\'')
 
 
 	## -------------------------------------------------------
