@@ -44,7 +44,7 @@ class Submission(Navigable):
 
 		self.level = 3
 
-		self.legend_string = 'index : name                 : status        : processes    : input dataset'
+		self.legend_string = 'index : name                 : status        : progress     : input dataset'
 		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<22} : {3:>5}/{4:<5}  : {5:<50}', 'index', 'name', 'status', 'finished_processes', 'total_processes', 'input_dataset')
 
 
@@ -152,6 +152,9 @@ class Submission(Navigable):
 		"""
 		Calls the grid to update the status of the submission
 		"""
+
+		if self.hide == -1: return
+		if self.status == 6: return
 
 		if not self.jedi_task_dict:
 			log.warning('{0}Not submitted yet, no jedi task ID.'.format('    '*self.level))

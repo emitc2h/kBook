@@ -42,6 +42,8 @@ class Navigable(list):
 			'info',
 			'get',
 			'set',
+			'close',
+			'open',
 			'parent',
 			'private',
 			'sort_by_time',
@@ -337,6 +339,53 @@ class Navigable(list):
 
 
 	## --------------------------------------------------------
+	def close(self, locator=''):
+		"""
+		Close the navigable for further updates
+		"""
+
+		if not locator:
+			self.status = 6
+			for navigable in self:
+				navigable.close()
+		elif locator == 'all':
+			for navigable in self:
+				navigable.close()
+		else:
+			i, navigable = self.navigate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			navigable.close()
+
+
+		## --------------------------------------------------------
+	def open(self, locator=''):
+		"""
+		Close the navigable for further updates
+		"""
+
+		if not locator:
+			if self.status == 6:
+				self.status = 0
+			else:
+				log.error('{0} is already open'.format(self.name))
+			for navigable in self:
+				navigable.open()
+		elif locator == 'all':
+			for navigable in self:
+				navigable.open()
+		else:
+			i, navigable = self.navigate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			navigable.open()
+
+
+
+
+	## --------------------------------------------------------
 	def submit(self, locator=''):
 		"""
 		Submit jobs
@@ -372,6 +421,7 @@ class Navigable(list):
 		"""
 
 		if self.hide == -1: return
+		if self.status == 6: return
 
 		if hasattr(self, 'version'):
 			log.debug('{0}updating {1} v{2} ...'.format('    '*self.level, self.name, self.version))

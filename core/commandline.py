@@ -199,6 +199,25 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
+	def do_close(self, arg):
+		"""
+		close <index> : closes a chain, job or submission for further updates
+		"""
+
+		self.book.location.close(arg)
+
+
+	## -------------------------------------------------------
+	def do_open(self, arg):
+		"""
+		open <index> : reopens a chain, job or submission for further updates
+		"""
+
+		self.book.location.open(arg)
+		self.book.location.update(arg)
+
+
+	## -------------------------------------------------------
 	def do_submit(self, arg):
 		"""
 		submit <index> : submit a chain, job or submission
@@ -447,6 +466,10 @@ class CommandLine(cmd.Cmd):
 			log.error('No entry with index {0}'.format(arg))
 			return
 
+		if navigable.parent is None:
+			log.error('Cannot delete book, {0} has no parent.'.format(navigable.name))
+			return
+
 		if hasattr(navigable, 'version'):
 			if not navigable.previous is None:
 				navigable.previous.hide = 1
@@ -458,7 +481,8 @@ class CommandLine(cmd.Cmd):
 				shutil.rmtree(navigable.path)
 			except OSError:
 				pass
-		self.book.location.remove(navigable)
+
+		navigable.parent.remove(navigable)
 		del navigable
 
 
