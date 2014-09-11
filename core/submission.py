@@ -153,8 +153,8 @@ class Submission(Navigable):
 		Calls the grid to retry the submission
 		"""
 
-		if not status == 2: return
-		Client.retryTask(self.jedi_task_dict['jediTaskID'], True)
+		if not self.status == 2: return
+		Client.retryTask(self.jedi_task_dict['jediTaskID'], False)
 
 
 	## --------------------------------------------------------
@@ -163,8 +163,8 @@ class Submission(Navigable):
 		Calls the grid to kill the submission
 		"""
 
-		if status == 3:
-			Client.killTask(self.jedi_task_dict['jediTaskID'], True)
+		if self.status == 3:
+			Client.killTask(self.jedi_task_dict['jediTaskID'], False)
 
 
 	## --------------------------------------------------------
