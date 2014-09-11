@@ -348,10 +348,8 @@ class Navigable(list):
 		elif locator == 'all':
 			for navigable in self:
 				navigable.submit()
-		elif locator == 'self':
-			self.submit()
 		else:
-			i, navigable = self.locate(locator)
+			i, navigable = self.navigate(locator)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return
@@ -388,10 +386,8 @@ class Navigable(list):
 			for navigable in self:
 				navigable.update()
 			self.evaluate_status()
-		elif locator == 'self':
-			self.update()
 		else:
-			i, navigable = self.locate(locator)
+			i, navigable = self.navigate(locator)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return
