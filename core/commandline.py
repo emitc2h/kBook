@@ -417,6 +417,24 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
+	def do_retry(self, arg):
+		"""
+		retry <index> : retries unfinished submissions under the given index
+		"""
+
+		self.book.location.retry(arg)
+
+
+	## -------------------------------------------------------
+	def do_kill(self, arg):
+		"""
+		kill <index> : kills all running submissions under the given index
+		"""
+
+		self.book.location.kill(arg)
+
+
+	## -------------------------------------------------------
 	def do_dq2get(self, arg):
 		"""
 		dq2get <index> : generates a dq2-get shell script in the kbook directory

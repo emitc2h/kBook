@@ -148,7 +148,27 @@ class Submission(Navigable):
 
 
 	## --------------------------------------------------------
-	def update(self):
+	def retry(self, locator=''):
+		"""
+		Calls the grid to retry the submission
+		"""
+
+		if not status == 2: return
+		Client.retryTask(self.jedi_task_dict['jediTaskID'], True)
+
+
+	## --------------------------------------------------------
+	def kill(self, locator=''):
+		"""
+		Calls the grid to kill the submission
+		"""
+
+		if status == 3:
+			Client.killTask(self.jedi_task_dict['jediTaskID'], True)
+
+
+	## --------------------------------------------------------
+	def update(self, locator=''):
 		"""
 		Calls the grid to update the status of the submission
 		"""

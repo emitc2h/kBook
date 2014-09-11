@@ -59,6 +59,8 @@ class Navigable(list):
 			'ls_pattern',
 			'index',
 			'submit',
+			'kill',
+			'retry',
 			'status_string',
 			'evaluate_status',
 			'update',
@@ -403,6 +405,46 @@ class Navigable(list):
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return
 			navigable.submit()
+
+
+	## --------------------------------------------------------
+	def retry(self, locator=''):
+		"""
+		Retry jobs
+		"""
+
+		if not locator:
+			for navigable in self:
+				navigable.retry()
+		elif locator == 'all':
+			for navigable in self:
+				navigable.retry()
+		else:
+			i, navigable = self.navigate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			navigable.retry()
+
+
+	## --------------------------------------------------------
+	def kill(self, locator=''):
+		"""
+		Kill jobs
+		"""
+
+		if not locator:
+			for navigable in self:
+				navigable.kill()
+		elif locator == 'all':
+			for navigable in self:
+				navigable.kill()
+		else:
+			i, navigable = self.navigate(locator)
+			if i < 0:
+				log.error('{0} does not exist in {1}'.format(locator, self.name))
+				return
+			navigable.kill()
 
 
 	## ---------------------------------------------------------
