@@ -37,8 +37,8 @@ class Navigable(list):
 		self.private       = [
 			'rebuild_hierarchy',
 			'locate',
-			'cd',
 			'ls',
+			'info',
 			'get',
 			'set',
 			'parent',
@@ -87,7 +87,8 @@ class Navigable(list):
 		"""
 
 		if len(self) == 0:
-			return -1, None
+			log.error('{0} does not have children'.format(self.name))
+			return self.index, self
 
 		## locator interpretation: name or index?
 		is_index = False
@@ -102,12 +103,51 @@ class Navigable(list):
 				return index, self[index]
 			except IndexError:
 				log.error('The index provided must from 0 to {0}'.format(len(self)-1))
-				return -1, None
+				return self.index, self
 		else:
 			for i, navigable in enumerate(self):
-				if navigable.name == locator: return i, navigable
+				if navigable.name == locator: 
+					return i, navigable
 			log.error('Could not locate {0}'.format(locator))
-			return -1, None
+			return self.index, self
+
+
+	## --------------------------------------------------------
+	def navigate(self, locator=''):
+		"""
+		returns a different navigable in the navigable hierarchy
+		"""
+
+		## Reference to current navigable
+		if not locator or locator == 'self':
+			return self.index, self
+
+
+		## Reference to parent navigable
+		elif locator == '..':
+			if not self.parent is None:
+				return self.parent.index, self.parent
+			else:
+				log.error('{0} does not have a parent'.format(self.name))
+				return self.index, self
+
+
+		## Reference to navigable through path
+		elif '/' in locator:
+			recursions = locator.split('/')
+			current_navigable = self
+			try:
+				for recursion in recursions:
+					index, current_navigable = current_navigable.navigate(recursion)
+				return index, current_navigable
+			except AttributeError:
+				log.error('{0} is an invalid path'.format(locator))
+				return self.index, self
+
+
+		## Reference to children in current navigable
+		else:
+			return self.locate(locator)
 
 
 	## --------------------------------------------------------
@@ -127,25 +167,39 @@ class Navigable(list):
 		lists information about the children
 		"""
 
-		self.sort_by_time()
-
-		## figure out path
-		current_navigable = self
-		navigable_path    = self.name
-		while not current_navigable.parent is None:
-			navigable_path = current_navigable.parent.name + '/' + navigable_path
-			current_navigable = current_navigable.parent
-
-		if not locator:
-			try:
-				log.info('In {0} : '.format(navigable_path))
-				log.info('-'*len(self[0].legend_string))
-				log.info(self[0].legend_string)
-				log.info('- '*(len(self[0].legend_string)/2))
-			except IndexError:
-				log.error('{0} is empty'.format(self.name))
+		if locator == 'all':
+			if len(self) == 0:
+				log.error('{0} does not have children'.format(self.name))
 				return
-			for i, navigable in enumerate(self):
+			for navigable in self:
+				navigable.ls()
+
+		else:
+			## Obtain navigable to ls
+			index, current_navigable = self.navigate(locator)
+
+			## prints info if navigable has no children
+			if len(current_navigable) == 0:
+				current_navigable.info()
+				return
+	
+			## sorting items to list by time
+			current_navigable.sort_by_time()
+	
+			## figure out path to print
+			current_navigable_for_path = current_navigable
+			navigable_path = current_navigable_for_path.name
+			while not current_navigable_for_path.parent is None:
+				navigable_path = current_navigable_for_path.parent.name + '/' + navigable_path
+				current_navigable_for_path = current_navigable_for_path.parent
+
+			log.info('In {0} : '.format(navigable_path))
+			log.info('-'*len(current_navigable[0].legend_string))
+			log.info(current_navigable[0].legend_string)
+			log.info('- '*(len(current_navigable[0].legend_string)/2))
+
+
+			for i, navigable in enumerate(current_navigable):
 
 				## skip hidden
 				if navigable.hide < 0: continue
@@ -161,51 +215,15 @@ class Navigable(list):
 
 				log.info(navigable.ls_pattern[0].format(*args))
 
-			log.info('-'*len(self[0].legend_string))
-
-		elif locator == 'all':
-			if len(self) == 0:
-				log.error('No lower hierarchy.')
-				return
-			for navigable in self:
-				navigable.ls()
-
-		else:
-			i, navigable = self.locate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.parent.name))
-				return
-			navigable.ls()
+			log.info('-'*len(current_navigable[0].legend_string))
 
 
 	## --------------------------------------------------------
-	def cd(self, locator=''):
+	def info(self):
 		"""
-		Go to a job
+		A function to print out info when ls is called on a navigable with no children
 		"""
-
-		if (not locator) or (locator=='..'):
-			if not self.parent is None:
-				return self.parent
-			else:
-				log.error('There is no higher step in the hierarchy.')
-				return self
-		elif '/' in locator:
-			recursions = locator.split('/')
-			current_navigable = self
-			try:
-				for recursion in recursions:
-					current_navigable = current_navigable.cd(recursion)
-				return current_navigable
-			except AttributeError:
-				log.error('{0} is an invalid path'.format(locator))
-				return self
-		else:
-			i, navigable = self.locate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return self
-			return navigable
+		return
 
 
 	## --------------------------------------------------------

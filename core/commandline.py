@@ -145,7 +145,7 @@ class CommandLine(cmd.Cmd):
 		             Type \'cd ..\' to go back
 		"""
 
-		self.book.location = self.book.location.cd(arg)
+		index, self.book.location = self.book.location.navigate(arg)
 
 
 	## -------------------------------------------------------

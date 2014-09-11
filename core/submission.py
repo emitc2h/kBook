@@ -49,7 +49,7 @@ class Submission(Navigable):
 
 
 	## -------------------------------------------------------
-	def ls(self, locator=''):
+	def info(self):
 		"""
 		prints out information about the submission
 		"""
@@ -159,9 +159,7 @@ class Submission(Navigable):
 
 		log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
 
-		slimmed_jedi_task_dict = {'jediTaskID' : self.jedi_task_dict['jediTaskID']}
-
-		status, new_jedi_task_dict = Client.getJediTaskDetails(slimmed_jedi_task_dict, True, True)
+		status, new_jedi_task_dict = Client.getJediTaskDetails(self.jedi_task_dict, True, True)
 		if not new_jedi_task_dict is None:
 			self.jedi_task_dict = new_jedi_task_dict
 
