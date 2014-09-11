@@ -44,8 +44,8 @@ class Submission(Navigable):
 
 		self.level = 3
 
-		self.legend_string = 'index : name                 : status        : progress     : input dataset'
-		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<22} : {3:>5}/{4:<5}  : {5:<50}', 'index', 'name', 'status', 'finished_processes', 'total_processes', 'input_dataset')
+		self.legend_string = 'index : name                 : status         : progress     : input dataset'
+		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<23} : {3:>5}/{4:<5}  : {5:<50}', 'index', 'name', 'status', 'finished_processes', 'total_processes', 'input_dataset')
 
 
 	## -------------------------------------------------------

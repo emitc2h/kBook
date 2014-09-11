@@ -66,10 +66,20 @@ class JobPrun(Job):
 		generate output dataset names for all submissions
 		"""
 
+		output_name_rules = self.parent.parent.preferences.output_name_rules.split(' ')
+
 		for submission in self:
+
+			dataset_string = submission.input_dataset
+			for rule in output_name_rules:
+				strings = rule.split(':')
+				input_string  = strings[0][1:-1]
+				output_string = strings[-1][1:-1]
+				dataset_string = dataset_string.replace(input_string, output_string)
+
 			outDS = 'user.{0}.{1}.{2}.{3}'.format(
 				self.parent.parent.preferences.user,
-				submission.input_dataset.replace('/', '').replace('user.mtm.', '').replace('merge.NTUP_TAU.', '').replace('mc12_8TeV.', '').replace('data12_8TeV.', '').replace('user.mtibbett.', '').replace('calibration_', '').replace('NUTP_IDVTXLUMI.', ''),
+				dataset_string,
 				self.parent.name,
 				'v{0}.{1}'.format(self.parent.version, self.version)
 				)
