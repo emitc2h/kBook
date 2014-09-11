@@ -5,7 +5,7 @@
 ## description : The command line interface             ##
 ##########################################################
 
-import cmd, readline, os, sys, pickle, glob, shutil
+import cmd, readline, os, sys, pickle, glob, shutil, stat
 import logging as log
 from book import Book
 
@@ -462,6 +462,7 @@ class CommandLine(cmd.Cmd):
 		os.chdir(os.path.join(self.book.download_path, script_name))
 
 		script = open('{0}.sh'.format(script_name), 'w')
+		script.write('#!/bin/bash\n\n')
 
 		job, output_datasets = navigable.generate_list('output_dataset')
 		for output_dataset in output_datasets:
@@ -469,6 +470,11 @@ class CommandLine(cmd.Cmd):
 				script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
 
 		script.close()
+		script_path = os.path.join(self.book.download_path, script_name, '{0}.sh'.format(script_name))
+		permissions = os.stat(script_path)
+		os.chmod(script_path, permissions.st_mode | stat.S_IEXEC)
+
+		log.info('Created dq2-get script at {0}'.format(script_path))
 
 		os.chdir(self.book.path)
 
