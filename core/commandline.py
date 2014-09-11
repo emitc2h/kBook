@@ -238,7 +238,7 @@ class CommandLine(cmd.Cmd):
 				self.book.location = spawn
 				self.book.location.recreate()
 		elif arg and children_are_versioned:
-			i, child = self.book.location.locate(arg)
+			i, child = self.book.location.navigate(arg)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
 				return
@@ -277,7 +277,7 @@ class CommandLine(cmd.Cmd):
 		if (not arg) and current_is_versioned:
 			self.book.location.show_versions()
 		elif arg and children_are_versioned:
-			i, child = self.book.location.locate(arg)
+			i, child = self.book.location.navigate(arg)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
 				return
@@ -333,7 +333,7 @@ class CommandLine(cmd.Cmd):
 		if locator == 'self' and current_is_versioned:
 			self.book.location = self.book.location.get_version(version)
 		elif locator and children_are_versioned:
-			i, child = self.book.location.locate(locator)
+			i, child = self.book.location.navigate(locator)
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
 				return
@@ -405,27 +405,33 @@ class CommandLine(cmd.Cmd):
 
 		os.chdir(self.book.download_path)
 
-		if not arg:
-			if hasattr(self.book.location, 'version'):
-				script_name = '{0}.v{1}'.format(self.book.location.name, self.book.location.version)
-			else:
-				script_name = '{0}'.format(self.book.location.name)
+		## Get the navigable
+		i, navigable = self.book.location.navigate(arg)
+		if i < 0:
+			log.error('{0} does not exist'.format(arg))
+			return
 
-			try:
-				os.mkdir(script_name)
-			except OSError:
-				log.error('download directory {0} already exists.'.format(script_name))
-				return
+		if hasattr(navigable, 'version'):
+			script_name = '{0}.v{1}'.format(navigable.name, navigable.version)
+		else:
+			script_name = '{0}'.format(navigable.name)
 
-			os.chdir(os.path.join(self.book.download_path, script_name))
+		try:
+			os.mkdir(script_name)
+		except OSError:
+			log.error('download directory {0} already exists.'.format(script_name))
+			return
 
-			script = open('{0}.sh'.format(script_name), 'w')
+		os.chdir(os.path.join(self.book.download_path, script_name))
 
-			output_datasets = self.book.location.generate_list('output_dataset')
-			for output_dataset in output_datasets:
-				script.write('dq2-get {0}_{1}/\n'.format(output_dataset, 'histograms.root'))
+		script = open('{0}.sh'.format(script_name), 'w')
 
-			script.close()
+		job, output_datasets = navigable.generate_list('output_dataset')
+		for output_dataset in output_datasets:
+			if job.type == 'prun':
+				script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
+
+		script.close()
 
 		os.chdir(self.book.path)
 

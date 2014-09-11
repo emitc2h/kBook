@@ -403,11 +403,12 @@ class Navigable(list):
 		values = []
 
 		if hasattr(self, attribute):
-			return [getattr(self, attribute)]
+			return self.parent, [getattr(self, attribute)]
 		else:
 			for navigable in self:
-				values += navigable.generate_list(attribute)
-			return values
+				current_parent, current_list = navigable.generate_list(attribute)
+				values += current_list
+			return current_parent, values
 
 
 
