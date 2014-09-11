@@ -442,9 +442,8 @@ class CommandLine(cmd.Cmd):
 		delete <index> : deletes object of the given index
 		"""
 
-		try:
-			navigable = self.book.location[int(arg)]
-		except IndexError:
+		i, navigable = self.book.location.navigate(arg)
+		if i < 0:
 			log.error('No entry with index {0}'.format(arg))
 			return
 
