@@ -515,7 +515,7 @@ class Navigable(list):
 		if len(self) == 0:
 			return self.status
 		else:
-			minimum_status = 5
+			minimum_status = 6
 			for navigable in self:
 				navigable_status = navigable.evaluate_status()
 				if navigable_status < minimum_status:

@@ -45,7 +45,7 @@ class Submission(Navigable):
 		self.level = 3
 
 		self.legend_string = 'index : status         : progress     : input dataset'
-		self.ls_pattern    = ('{0:<5} : {2:<23} : {3:>5}/{4:<5}  : {5:<50}', 'index', 'status', 'finished_processes', 'total_processes', 'input_dataset')
+		self.ls_pattern    = ('{0:<5} : {1:<23} : {2:>5}/{3:<5}  : {4:<50}', 'index', 'status', 'finished_processes', 'total_processes', 'input_dataset')
 
 
 	## -------------------------------------------------------
@@ -202,6 +202,8 @@ class Submission(Navigable):
 			self.total_processes    = total		
 
 		except KeyError:
+			pass
+		except ValueError:
 			pass
 
 		try:

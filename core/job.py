@@ -40,8 +40,8 @@ class Job(Versioned):
 
 		self.level = 2
 
-		self.legend_string = 'index : name                 : status        : version'
-		self.ls_pattern    = ('{0:<5} : {1:<20} : {2:<22} : {3:<5}', 'index', 'name', 'status', 'version')
+		self.legend_string = 'index : status        : version'
+		self.ls_pattern    = ('{0:<5} : {2:<22} : {3:<5}', 'index', 'status', 'version')
 
 		self.create_directory()
 		self.construct_command()
