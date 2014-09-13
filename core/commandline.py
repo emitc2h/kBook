@@ -76,14 +76,17 @@ class CommandLine(cmd.Cmd):
 			if len(command_parts) > 1:
 				argument = ' '.join(command_parts[1:])
 			
-			if not 'do_{0}'.format(action) in dir(self):
+			function_name = 'do_{0}'.format(action)
+
+			if not function_name in dir(self):
 				log.error('{0} is not a kBook command, exiting ...'.format(action))
 				sys.exit()
 
-			function = getattr(self, 'do_{0}'.format(action))
-			calls.append((function, argument))
+			function = getattr(self, function_name)
+			calls.append((function, argument, action))
 
 		for call in calls:
+			log.info('{0} {1}'.format(call[2], call[1]))
 			call[0](call[1])
 
 		self.save_book()

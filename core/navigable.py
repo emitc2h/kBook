@@ -245,7 +245,7 @@ class Navigable(list):
 			for att in dir(self):
 				if '__' in att: continue
 				if att in self.private: continue
-				if '_time' in att:
+				if '_time' in att and not 'series' in att:
 					log.info('{0:<23} = {1:<30}'.format(att, time.ctime(getattr(self, att))))
 				else:
 					log.info('{0:<23} = {1:<30}'.format(att, getattr(self, att)))
@@ -277,7 +277,14 @@ class Navigable(list):
 			if i < 0:
 				log.error('{0} does not exist in {1}'.format(locator, self.name))
 				return
-			navigable.get('self', attribute)
+				
+			if '__' in attribute or attribute in navigable.private:
+				log.info('{0} is private'.format(attribute))
+
+			if '_time' in attribute and not 'series' in attribute:
+				log.info('{0:<23} = {1:<30}'.format(attribute, time.ctime(getattr(navigable, attribute))))
+			else:
+				log.info('{0:<23} = {1:<30}'.format(attribute, getattr(navigable, attribute)))
 
 
 	## --------------------------------------------------------

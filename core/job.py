@@ -6,7 +6,7 @@
 ##               and config used on many input datasets ##
 ##########################################################
 
-import os, shutil
+import os, shutil, time
 import logging as log
 from submission import Submission
 from versioned import Versioned
@@ -43,6 +43,8 @@ class Job(Versioned):
 		self.finished_processes = 0
 		self.total_processes    = 0
 		self.completion         = '0.0%'
+
+		self.completion_time_series = []
 
 		self.legend_string = 'index : status        : progress : version'
 		self.ls_pattern    = ('{0:<5} : {2:<22} : {2:<8} : {3:<5}', 'index', 'status', 'completion', 'version')
@@ -121,18 +123,18 @@ class Job(Versioned):
 
 		self.finished_processes   = 0
 		self.total_processes      = 0
+		raw_percentage            = 0.0
 		self.completion           = '0.0%'
-
-		self.legend_string = 'index : status        : progress : version'
-		self.ls_pattern    = ('{0:<5} : {1:<22} : {2:<8} : {3:<5}', 'index', 'status', 'completion', 'version')
 
 		for submission in self:
 			self.finished_processes += submission.finished_processes
 			self.total_processes += submission.total_processes
 
 		if not self.total_processes == 0:
-			self.completion = '{0:.1%}'.format(float(self.finished_processes)/float(self.total_processes))
+			raw_percentage  = float(self.finished_processes)/float(self.total_processes)
+			self.completion = '{0:.1%}'.format(raw_percentage)
 
+		self.completion_time_series.append((time.time(), raw_percentage))
 
 
 		
