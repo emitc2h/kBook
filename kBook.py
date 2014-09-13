@@ -8,9 +8,16 @@
 ##                                                      ##
 ##########################################################
 
-import logging, time, pickle
+import logging, time, pickle, argparse
 from core.commandline import CommandLine
 from core.preferences import Preferences
+
+## - - - - - - - - - - - - - - - - - - - - - - - - 
+## Handle arguments
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--scriptmode', default='', dest='commands', help='runs kBook in script mode command1 arg1;command2 arg2; ...')
+args = parser.parse_args()
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - 
 ## Loading preferences (or creating)
@@ -58,6 +65,9 @@ else:
 
 
 the_commandline = CommandLine(preferences)
-the_commandline.run()
+if not args.commands:
+	the_commandline.run()
+else:
+	the_commandline.execute(args.commands)
 
 

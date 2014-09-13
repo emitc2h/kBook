@@ -40,8 +40,12 @@ class Job(Versioned):
 
 		self.level = 2
 
-		self.legend_string = 'index : status        : version'
-		self.ls_pattern    = ('{0:<5} : {2:<22} : {3:<5}', 'index', 'status', 'version')
+		self.finished_processes = 0
+		self.total_processes    = 0
+		self.completion         = '0.0%'
+
+		self.legend_string = 'index : status        : progress : version'
+		self.ls_pattern    = ('{0:<5} : {2:<22} : {2:<8} : {3:<5}', 'index', 'status', 'completion', 'version')
 
 		self.create_directory()
 		self.construct_command()
@@ -105,6 +109,29 @@ class Job(Versioned):
 		self.construct_command()
 		self.read_input_file()
 		self.generate_output_dataset_names()
+
+
+	## ---------------------------------------------------------
+	def update(self, locator=''):
+		"""
+		Updates completion information
+		"""
+
+		Versioned.update(self, locator)
+
+		self.finished_processes   = 0
+		self.total_processes      = 0
+		self.completion           = '0.0%'
+
+		self.legend_string = 'index : status        : progress : version'
+		self.ls_pattern    = ('{0:<5} : {1:<22} : {2:<8} : {3:<5}', 'index', 'status', 'completion', 'version')
+
+		for submission in self:
+			self.finished_processes += submission.finished_processes
+			self.total_processes += submission.total_processes
+
+		if not self.total_processes == 0:
+			self.completion = '{0:.1%}'.format(float(self.finished_processes)/float(self.total_processes))
 
 
 

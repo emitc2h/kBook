@@ -413,6 +413,8 @@ class Navigable(list):
 		Retry jobs
 		"""
 
+		log.debug('{0}retrying {1} ...'.format('    '*self.level, self.name))
+
 		if not locator:
 			for navigable in self:
 				navigable.retry()
@@ -432,6 +434,8 @@ class Navigable(list):
 		"""
 		Kill jobs
 		"""
+
+		log.debug('{0}killing {1} ...'.format('    '*self.level, self.name))
 
 		if not locator:
 			for navigable in self:
@@ -466,9 +470,9 @@ class Navigable(list):
 		if self.status == 6: return
 
 		if hasattr(self, 'version'):
-			log.debug('{0}updating {1} v{2} ...'.format('    '*self.level, self.name, self.version))
+			log.info('{0}updating {1} v{2} ...'.format('    '*self.level, self.name, self.version))
 		else:
-			log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
+			log.info('{0}updating {1} ...'.format('    '*self.level, self.name))
 
 		if not locator:
 			for navigable in self:

@@ -36,6 +36,7 @@ class Submission(Navigable):
 		self.past_jedi_task_dicts = []
 		self.finished_processes   = 0
 		self.total_processes      = 0
+		self.completion           = '0.0%'
 		self.status               = 0
 		self.private += [
 			'compile_panda_options',
@@ -44,8 +45,8 @@ class Submission(Navigable):
 
 		self.level = 3
 
-		self.legend_string = 'index : status         : progress     : input dataset'
-		self.ls_pattern    = ('{0:<5} : {1:<23} : {2:>5}/{3:<5}  : {4:<50}', 'index', 'status', 'finished_processes', 'total_processes', 'input_dataset')
+		self.legend_string = 'index : status         : progress : input dataset'
+		self.ls_pattern    = ('{0:<5} : {1:<23} : {2:<8} : {3:<50}', 'index', 'status', 'completion', 'input_dataset')
 
 
 	## -------------------------------------------------------
@@ -154,8 +155,9 @@ class Submission(Navigable):
 		"""
 
 		if not self.status == 2: return
-		log.debug('{0}retrying {1} ...'.format('    '*self.level, self.name))
+		log.info('{0}retrying {1} ...'.format('    '*self.level, self.name))
 		Client.retryTask(self.jedi_task_dict['jediTaskID'], False)
+		self.update()
 
 
 	## --------------------------------------------------------
@@ -165,8 +167,9 @@ class Submission(Navigable):
 		"""
 
 		if self.status == 3:
-			log.debug('{0}killing {1} ...'.format('    '*self.level, self.name))
+			log.info('{0}killing {1} ...'.format('    '*self.level, self.name))
 			Client.killTask(self.jedi_task_dict['jediTaskID'], False)
+			self.update()
 
 
 	## --------------------------------------------------------
@@ -182,7 +185,7 @@ class Submission(Navigable):
 			log.warning('{0}Not submitted yet, no jedi task ID.'.format('    '*self.level))
 			return
 
-		log.debug('{0}updating {1} ...'.format('    '*self.level, self.name))
+		log.info('{0}updating {1} ...'.format('    '*self.level, self.name))
 
 		status, new_jedi_task_dict = Client.getJediTaskDetails(self.jedi_task_dict, True, True)
 		if not new_jedi_task_dict is None:
@@ -201,7 +204,9 @@ class Submission(Navigable):
 				total += number
 
 			self.finished_processes = done
-			self.total_processes    = total		
+			self.total_processes    = total
+			if not self.total_processes == 0:
+				self.completion = '{0:.1%}'.format(float(self.finished_processes)/float(self.total_processes))
 
 		except KeyError:
 			pass

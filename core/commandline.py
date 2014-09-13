@@ -61,6 +61,36 @@ class CommandLine(cmd.Cmd):
 
 
 	## -------------------------------------------------------
+	def execute(self, arg):
+		"""
+		execute commands and quit (script mode)
+		"""
+
+		log.info('kBook running in script mode ...')
+		commands = arg.split(';')
+		calls    = []
+		for command in commands:
+			command_parts = command.split(' ')
+			action   = command_parts[0]
+			argument = ''
+			if len(command_parts) > 1:
+				argument = ' '.join(command_parts[1:])
+			
+			if not 'do_{0}'.format(action) in dir(self):
+				log.error('{0} is not a kBook command, exiting ...'.format(action))
+				sys.exit()
+
+			function = getattr(self, 'do_{0}'.format(action))
+			calls.append((function, argument))
+
+		for call in calls:
+			call[0](call[1])
+
+		self.save_book()
+
+
+
+	## -------------------------------------------------------
 	def help_help(self):
 		"""
 		help documentation
