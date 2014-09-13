@@ -154,6 +154,7 @@ class Submission(Navigable):
 		"""
 
 		if not self.status == 2: return
+		log.debug('{0}retrying {1} ...'.format('    '*self.level, self.name))
 		Client.retryTask(self.jedi_task_dict['jediTaskID'], False)
 
 
@@ -164,6 +165,7 @@ class Submission(Navigable):
 		"""
 
 		if self.status == 3:
+			log.debug('{0}killing {1} ...'.format('    '*self.level, self.name))
 			Client.killTask(self.jedi_task_dict['jediTaskID'], False)
 
 
