@@ -26,7 +26,7 @@ class Job(Versioned):
 
 		Versioned.__init__(self, name, parent, '')
 
-		self.status           = 'not submitted'
+		self.status           = 0
 		self.type             = ''
 		self.path             = path
 		self.input_file_path  = input_file_path

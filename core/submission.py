@@ -145,8 +145,6 @@ class Submission(Navigable):
 		if ('succeeded. new' in pout) and (not already_done):
 			self.status = 3
 
-		self.update()
-
 
 	## --------------------------------------------------------
 	def retry(self, locator=''):
@@ -157,7 +155,6 @@ class Submission(Navigable):
 		if not self.status == 2: return
 		log.info('{0}retrying {1} ...'.format('    '*self.level, self.name))
 		Client.retryTask(self.jedi_task_dict['jediTaskID'], False)
-		self.update()
 
 
 	## --------------------------------------------------------
@@ -169,7 +166,6 @@ class Submission(Navigable):
 		if self.status == 3:
 			log.info('{0}killing {1} ...'.format('    '*self.level, self.name))
 			Client.killTask(self.jedi_task_dict['jediTaskID'], False)
-			self.update()
 
 
 	## --------------------------------------------------------

@@ -6,7 +6,7 @@
 ##               prun jobs                              ##
 ##########################################################
 
-import os, shutil
+import os, shutil, glob
 from job import Job
 
 ## =======================================================
@@ -18,7 +18,7 @@ class JobPrun(Job):
 
 
 	## -------------------------------------------------------
-	def __init__(self, script_path, use_root, root_version, output, *args, **kwargs):
+	def __init__(self, script_path, use_root, root_version, output, additional_files, *args, **kwargs):
 		"""
 		Constructor
 		"""
@@ -28,6 +28,7 @@ class JobPrun(Job):
 		self.use_root     = use_root
 		self.root_version = root_version
 		self.output       = output
+		self.additional_files = additional_files
 
 		Job.__init__(self, *args, **kwargs)
 
@@ -45,6 +46,18 @@ class JobPrun(Job):
 
 		Job.create_directory(self)
 		shutil.copyfile(self.script_path, './{0}'.format(self.script_name))
+
+		if self.additional_files:
+
+			files = []
+
+			for additional_file in self.additional_files:
+				for ff in  glob.glob(additional_file):
+					file_name = os.path.basename(ff)
+					files.append(file_name)
+					shutil.copyfile(ff, './{0}'.format(file_name))
+
+			self.panda_options += '--extFile={0}'.format(','.join(files))
 
 
 	## --------------------------------------------------------

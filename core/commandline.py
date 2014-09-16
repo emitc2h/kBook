@@ -128,21 +128,39 @@ class CommandLine(cmd.Cmd):
 		input_file_path = self.ask_for_path('create : please provide path to list of input datasets')
 
 		## job type specific input
-		script_path   = ''
-		use_root      = False
-		root_version  = ''
-		output        = ''
-		panda_options = ''
+		script_path      = ''
+		use_root         = False
+		root_version     = ''
+		output           = ''
+		additional_files = []
+		panda_options    = ''
 
 		if job_type == 'prun':
+			## Path to script to be executed
 			script_path = self.ask_for_path('create : prun : please provide path to the script to be executed')
+
+			## Path to additional files to include
+			use_more_files = raw_input('kBook : create : prun : Any additional files needed (you can use *)? (y/n) > ')
+			if use_more_files == 'y':
+				while(True):
+					use_more_files = self.ask_for_path('create : prun : add file (type \'n\' if no more files)')
+					if not os.path.basename(use_more_files) == 'n':
+						additional_files.append(use_more_files)
+					else:
+						break
+
+			## ROOT details
 			use_root    = raw_input('kBook : create : prun : Use ROOT? (y/n) > ')
 			if use_root == 'y':
 				use_root = True
 				root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 5.34.18) > ')
 				if not root_version: root_version = '5.34.18'
+
+			## Specify the name of the output files
 			output = raw_input('kBook : create : prun : provide names of output files to be stored (comma-separated) > ')
-			panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
+
+		## Specify additional panda options
+		panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
 
 
 		self.book.create_chain(
@@ -153,7 +171,8 @@ class CommandLine(cmd.Cmd):
 			script_path=script_path,
 			use_root=use_root,
 			root_version=root_version,
-			output=output
+			output=output,
+			additional_files=additional_files
 			)
 
 		self.save_book()
@@ -447,6 +466,7 @@ class CommandLine(cmd.Cmd):
 		"""
 
 		self.book.location.update(arg)
+		self.save_book()
 
 
 	## -------------------------------------------------------
@@ -542,6 +562,8 @@ class CommandLine(cmd.Cmd):
 		navigable.parent.remove(navigable)
 		del navigable
 
+		self.save_book()
+
 
 	## -------------------------------------------------------
 	def do_save(self, arg):
@@ -556,11 +578,10 @@ class CommandLine(cmd.Cmd):
 	## -------------------------------------------------------
 	def do_exit(self, arg):
 		"""
-		exit <saving> : Exit kBook. saving = \'nosave\' to avoid saving the session.
+		exit <saving> : Exit kBook.
 		"""
 
-		if not arg == 'nosave':
-			self.save_book()
+		self.save_book()
 
 		log.info('Goodbye')
 		sys.exit(1)

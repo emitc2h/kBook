@@ -52,17 +52,19 @@ class Chain(Versioned):
 
 		self.modified_time = time.time()
 		if job_type == 'prun':
-			script_path  = kwargs['script_path']
-			use_root     = kwargs['use_root']
-			root_version = kwargs['root_version']
-			output       = kwargs['output']
-			path         = os.path.join(self.path, 'job0000_v0')
+			script_path      = kwargs['script_path']
+			use_root         = kwargs['use_root']
+			root_version     = kwargs['root_version']
+			output           = kwargs['output']
+			additional_files = kwargs['additional_files']
+			path             = os.path.join(self.path, 'job0000_v0')
 
 			new_jobprun = JobPrun(
 				script_path,
 				use_root,
 				root_version,
 				output,
+				additional_files,
 				'job0000',
 				self,
 				path,
@@ -99,6 +101,7 @@ class Chain(Versioned):
 					job.use_root,
 					job.root_version,
 					job.output,
+					job.additional_files,
 					job.name,
 					job.parent.get_latest(),
 					os.path.join(self.path, '{0}_v0'.format(job.name)),
