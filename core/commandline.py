@@ -105,7 +105,7 @@ class CommandLine(cmd.Cmd):
 	## -------------------------------------------------------
 	def do_create(self, arg):
 		"""
-		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'pathena-algo\', \'pathena-trf\'
+		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'pathena-algo\', \'pathena-trf\', \'taskid\'
 		"""
 
 		## Interpret arguments
@@ -121,11 +121,15 @@ class CommandLine(cmd.Cmd):
 			log.error('Please provide a chain name that is alphanumeric (example: \'mychain456\').')
 			return
 
-		if not (job_type=='prun' or job_type=='pathena-algo' or job_type=='pathena-trf'):
-			log.error('Please provide of the the following chain types: \'prun\', \'pathena-algo\' or \'pathena-trf\'.')
+		if not (job_type=='prun' or job_type=='pathena-algo' or job_type=='pathena-trf' or job_type=='taskid'):
+			log.error('Please provide of the the following chain types: \'prun\', \'pathena-algo\', \'pathena-trf\' or \'taskid\'.')
 			return
 
-		input_file_path = self.ask_for_path('create : please provide path to list of input datasets')
+		if job_type == 'taskid':
+			input_file_path = self.ask_for_path('create : please provide path to the file containing the JEDI task IDs')
+		else:
+			input_file_path = self.ask_for_path('create : please provide path to list of input datasets')
+
 
 		## job type specific input
 		script_path      = ''
@@ -159,8 +163,8 @@ class CommandLine(cmd.Cmd):
 			## Specify the name of the output files
 			output = raw_input('kBook : create : prun : provide names of output files to be stored (comma-separated) > ')
 
-		## Specify additional panda options
-		panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
+			## Specify additional panda options
+			panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
 
 
 		self.book.create_chain(

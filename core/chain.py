@@ -10,6 +10,7 @@
 import os, time
 import logging as log
 from job_prun import JobPrun
+from job_taskid import JobTaskID
 from versioned import Versioned
 
 ## =======================================================
@@ -51,6 +52,9 @@ class Chain(Versioned):
 		"""
 
 		self.modified_time = time.time()
+
+		new_job = None
+
 		if job_type == 'prun':
 			script_path      = kwargs['script_path']
 			use_root         = kwargs['use_root']
@@ -59,7 +63,7 @@ class Chain(Versioned):
 			additional_files = kwargs['additional_files']
 			path             = os.path.join(self.path, 'job0000_v0')
 
-			new_jobprun = JobPrun(
+			new_job = JobPrun(
 				script_path,
 				use_root,
 				root_version,
@@ -71,7 +75,16 @@ class Chain(Versioned):
 				input_file_path
 				)
 
-			self.append(new_jobprun)
+		if job_type == 'taskid':
+			new_job = JobTaskID(
+				'job0000',
+				self,
+				os.path.join(self.path, 'job0000_v0'),
+				input_file_path
+				)
+
+		self.append(new_job)
+
 
 
 	## ---------------------------------------------------------

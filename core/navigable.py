@@ -400,6 +400,8 @@ class Navigable(list):
 		Submit jobs
 		"""
 
+		if self.status == 6: return
+
 		if not locator:
 			for navigable in self:
 				navigable.submit()
@@ -420,6 +422,7 @@ class Navigable(list):
 		Retry jobs
 		"""
 
+		if self.status == 6: return
 		log.debug('{0}retrying {1} ...'.format('    '*self.level, self.name))
 
 		if not locator:
@@ -442,6 +445,7 @@ class Navigable(list):
 		Kill jobs
 		"""
 
+		if self.status == 6: return
 		log.debug('{0}killing {1} ...'.format('    '*self.level, self.name))
 
 		if not locator:
