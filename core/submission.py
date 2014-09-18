@@ -155,6 +155,7 @@ class Submission(Navigable):
 		if not self.status == 2: return
 		log.info('{0}retrying {1} ...'.format('    '*self.level, self.name))
 		Client.retryTask(self.jedi_task_dict['jediTaskID'], False)
+		self.status = 3
 
 
 	## --------------------------------------------------------
@@ -163,9 +164,10 @@ class Submission(Navigable):
 		Calls the grid to kill the submission
 		"""
 
-		if self.status == 3:
-			log.info('{0}killing {1} ...'.format('    '*self.level, self.name))
-			Client.killTask(self.jedi_task_dict['jediTaskID'], False)
+		#if self.status == 3:
+		log.info('{0}killing {1} ...'.format('    '*self.level, self.name))
+		Client.killTask(self.jedi_task_dict['jediTaskID'], False)
+		self.status = 1
 
 
 	## --------------------------------------------------------
@@ -175,6 +177,7 @@ class Submission(Navigable):
 		"""
 
 		if self.hide == -1: return
+		if self.status == 4: return
 		if self.status == 6: return
 
 		if not self.jedi_task_dict:
