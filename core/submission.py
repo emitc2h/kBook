@@ -38,6 +38,8 @@ class Submission(Navigable):
 		self.total_processes      = 0
 		self.completion           = '0.0%'
 		self.status               = 0
+		self.retry_count          = 0
+		self.retry_count_max      = 10
 		self.private += [
 			'compile_panda_options',
 			'parse_panda_status'
@@ -153,9 +155,13 @@ class Submission(Navigable):
 		"""
 
 		if not self.status == 2: return
+		if self.retry_count > self.retry_count_max: return
+
 		log.info('{0}retrying {1} ...'.format('    '*self.level, self.name))
 		Client.retryTask(self.jedi_task_dict['jediTaskID'], False)
+
 		self.status = 3
+		self.retry_count += 1
 
 
 	## --------------------------------------------------------

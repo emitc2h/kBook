@@ -105,6 +105,11 @@ class Chain(Versioned):
 
 		del self[:]
 
+		self.creation_time = time.time()
+		self.modified_time = time.time()
+		self.status        = 0
+		self.comment       = ''
+
 		for job in self.previous:
 			if job.hide < 0: continue
 			new_job = None
