@@ -5,7 +5,8 @@
 ## description : The command line interface             ##
 ##########################################################
 
-import cmd, readline, os, sys, pickle, glob, shutil, stat
+from cmd import Cmd
+import readline, os, sys, pickle, glob, shutil, stat
 import logging as log
 from book import Book
 
@@ -16,7 +17,7 @@ path_delimiters     = ' \t\n;'
 readline.parse_and_bind('tab: complete')
 
 ## =======================================================
-class CommandLine(cmd.Cmd):
+class CommandLine(Cmd):
 	"""
 	A class using the cmd module to provide a command line interface
 	"""
@@ -31,7 +32,7 @@ class CommandLine(cmd.Cmd):
 		log.info('Welcome to kBook 2.0.0!')
 		log.info('-'*40)
 
-		cmd.Cmd.__init__(self)
+		Cmd.__init__(self)
 		self.prompt = 'kBook > '
 		try:
 			book_file = open('.book/book.kbk')
@@ -67,30 +68,22 @@ class CommandLine(cmd.Cmd):
 		"""
 
 		log.info('kBook running in script mode ...')
-		commands = arg.split(';')
-		calls    = []
-		for command in commands:
-			command_parts = command.split(' ')
-			action   = command_parts[0]
-			argument = ''
-			if len(command_parts) > 1:
-				argument = ' '.join(command_parts[1:])
-			
-			function_name = 'do_{0}'.format(action)
-
-			if not function_name in dir(self):
-				log.error('{0} is not a kBook command, exiting ...'.format(action))
-				sys.exit()
-
-			function = getattr(self, function_name)
-			calls.append((function, argument, action))
-
-		for call in calls:
-			log.info('{0} {1}'.format(call[2], call[1]))
-			call[0](call[1])
-
+		self.onecmd(arg)
 		self.save_book()
 
+
+	## -------------------------------------------------------
+	def onecmd(self, arg):
+		"""
+		Overrides onecmd to enable parsing of multiple commands separated by semi-colons
+		"""
+
+		if ';' in arg:
+			commands = arg.split(';')
+			for command in commands:
+				Cmd.onecmd(self, command)
+		else:
+			Cmd.onecmd(self, arg)
 
 
 	## -------------------------------------------------------
