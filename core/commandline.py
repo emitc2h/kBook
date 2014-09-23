@@ -9,6 +9,7 @@ from cmd import Cmd
 import readline, os, sys, pickle, glob, shutil, stat
 import logging as log
 from book import Book
+import definitions
 
 ## =======================================================
 ## Define the two types of completers
@@ -176,6 +177,20 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def complete_create(self, text, line, begidx, endidx):
+		"""
+		Autocomplete for the create types
+		"""
+
+		if not text:
+			completions = definitions.job_types
+		else:
+			completions = [item for item in definitions.job_types if item.startswith(text)]
+
+		return completions
+
+
+	## -------------------------------------------------------
 	def do_ls(self, arg):
 		"""
 		ls <index> : lists the content of a specified container, the container being one of the following:
@@ -188,6 +203,20 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def complete_ls(self, text, line, begidx, endidx):
+		"""
+		Autocomplete for the create types
+		"""
+
+		if not text:
+			completions = [item.name for item in self.book.location[:]]
+		else:
+			completions = [item.name for item in self.book.location[:] if item.name.startswith(text)]
+
+		return completions
+
+
+	## -------------------------------------------------------
 	def do_cd(self, arg):
 		"""
 		cd <index> : navigate the chains, jobs and submission.
@@ -195,6 +224,20 @@ class CommandLine(Cmd):
 		"""
 
 		index, self.book.location = self.book.location.navigate(arg)
+
+
+	## -------------------------------------------------------
+	def complete_cd(self, text, line, begidx, endidx):
+		"""
+		Autocomplete for the create types
+		"""
+
+		if not text:
+			completions = [item.name for item in self.book.location[:]]
+		else:
+			completions = [item.name for item in self.book.location[:] if item.name.startswith(text)]
+
+		return completions
 
 
 	## -------------------------------------------------------
