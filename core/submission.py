@@ -183,7 +183,7 @@ class Submission(Navigable):
 
 
 	## --------------------------------------------------------
-	def update(self, locator=''):
+	def update(self, locator='', indepth=False):
 		"""
 		Calls the grid to update the status of the submission
 		"""
@@ -223,6 +223,23 @@ class Submission(Navigable):
 			pass
 		except ValueError:
 			pass
+
+		if indepth:
+			try:
+				output_datasets = self.jedi_task_dict['outDS']
+				output_datasets = output_datasets.split(',')
+				if len(output_datasets) > 2:
+					log.error('More than 2 output datasets registered, which one to pick?')
+					for outDS in output_datasets:
+						log.error('    {0}'.format(outDS))
+					return
+
+				for outDS in output_datasets:
+					if '.log' in outDS: continue
+					self.output_dataset = outDS
+			except KeyError:
+				pass
+
 
 		try:
 			self.status = definitions.kbook_status_from_jedi[self.jedi_task_dict['status']]

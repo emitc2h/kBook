@@ -559,8 +559,11 @@ class CommandLine(Cmd):
 
 		job, output_datasets = navigable.generate_list('output_dataset')
 		for output_dataset in output_datasets:
-			if job.type == 'prun':
-				script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
+			if output_dataset:
+				if job.type == 'prun':
+					script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
+				if job.type == 'taskid':
+					script.write('dq2-get {0}\n'.format(output_dataset))
 
 		script.close()
 		script_path = os.path.join(self.book.download_path, script_name, '{0}.sh'.format(script_name))
