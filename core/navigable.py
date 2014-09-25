@@ -401,6 +401,7 @@ class Navigable(list):
 		"""
 
 		if self.status == 6: return
+		if self.hide == -1: return
 
 		if not locator:
 			for navigable in self:
@@ -423,6 +424,8 @@ class Navigable(list):
 		"""
 
 		if self.status == 6: return
+		if self.hide == -1: return
+
 		log.debug('{0}retrying {1} ...'.format('    '*self.level, self.name))
 
 		if not locator:
@@ -446,6 +449,8 @@ class Navigable(list):
 		"""
 
 		if self.status == 6: return
+		if self.hide == -1: return
+		
 		log.debug('{0}killing {1} ...'.format('    '*self.level, self.name))
 
 		if not locator:

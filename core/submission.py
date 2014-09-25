@@ -6,7 +6,7 @@
 ##               submission                             ##
 ##########################################################
 
-import os
+import os, time
 import logging as log
 from subprocess import Popen, PIPE
 from navigable import Navigable
@@ -147,6 +147,8 @@ class Submission(Navigable):
 		if ('succeeded. new' in pout) and (not already_done):
 			self.status = 3
 
+		self.modified_time = time.time()
+
 
 	## --------------------------------------------------------
 	def retry(self, locator=''):
@@ -155,13 +157,15 @@ class Submission(Navigable):
 		"""
 
 		if not self.status == 2: return
-		if self.retry_count > self.retry_count_max: return
+		if self.retry_count >= self.retry_count_max: return
 
 		log.info('{0}retrying {1} ...'.format('    '*self.level, self.name))
 		Client.retryTask(self.jedi_task_dict['jediTaskID'], False)
 
 		self.status = 3
 		self.retry_count += 1
+
+		self.modified_time = time.time()
 
 
 	## --------------------------------------------------------
@@ -174,6 +178,8 @@ class Submission(Navigable):
 		log.info('{0}killing {1} ...'.format('    '*self.level, self.name))
 		Client.killTask(self.jedi_task_dict['jediTaskID'], False)
 		self.status = 1
+
+		self.modified_time = time.time()
 
 
 	## --------------------------------------------------------
@@ -222,6 +228,8 @@ class Submission(Navigable):
 			self.status = definitions.kbook_status_from_jedi[self.jedi_task_dict['status']]
 		except KeyError:
 			log.error('Status is not defined yet.')
+
+		self.modified_time = time.time()
 
 
 

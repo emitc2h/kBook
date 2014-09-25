@@ -6,6 +6,8 @@
 ##               that need to be restored  every sess.  ##
 ##########################################################
 
+import logging as log
+
 ## =======================================================
 class Preferences(dict):
 	"""
@@ -58,4 +60,4 @@ class Preferences(dict):
 		"""
 
 		for key, value in self.iteritems():
-			print '{0:<20} : {1}'.format(key, value)
+			log.info('{0:<20} : {1}'.format(key, value))
