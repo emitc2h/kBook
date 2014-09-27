@@ -169,6 +169,12 @@ class Book(Navigable):
 		## Obtain current machine
 		lxplus_node = os.environ['HOSTNAME']
 
+		## Schedule the first cron job 2 minutes from now
+		minutes = time.ctime(time.time())
+		minute = int(minutes.split(' ')[3].split(':')[1]) + 2
+		if minute > 60:
+			minute -= 60
+
 		crontab = self.acquire_crontab()
 
 		updated_crontab = open('crontab.tmp', 'w')
@@ -185,7 +191,7 @@ class Book(Navigable):
 			if line:
 				updated_crontab.write('{0}\n'.format(line))
 
-		cronjob = '19 * * * * {0} export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase/; source $ATLAS_LOCAL_ROOT_BASE/packageSetups/atlasLocalPandaClientSetup.sh; cd /afs/cern.ch/user/m/mtm/kBook; ./kBook.py --scriptmode="{1}"\n'.format(lxplus_node, ';'.join(['update', 'retry', arg]))
+		cronjob = '{0} * * * * {1} export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase/; source $ATLAS_LOCAL_ROOT_BASE/packageSetups/atlasLocalPandaClientSetup.sh; cd /afs/cern.ch/user/m/mtm/kBook; ./kBook.py --scriptmode="{2}"\n'.format(minute, lxplus_node, ';'.join(['update', 'retry', arg]))
 
 		log.info('Adding the following cron job to the cron tab:')
 		log.info(cronjob)

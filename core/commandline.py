@@ -6,7 +6,7 @@
 ##########################################################
 
 from cmd import Cmd
-import readline, os, sys, pickle, glob, shutil, stat, getpass
+import readline, os, sys, pickle, glob, shutil, stat, getpass, time
 from pandatools import PsubUtils, Client
 from subprocess import Popen, PIPE
 import logging as log
