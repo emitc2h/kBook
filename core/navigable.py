@@ -93,28 +93,21 @@ class Navigable(list):
 
 		if len(self) == 0:
 			log.error('{0} does not have children'.format(self.name))
-			return -1, self
+			return (-1, self)
+
 
 		## locator interpretation: name or index?
-		is_index = False
 		try:
 			index = int(locator)
-			is_index = True
 		except ValueError:
-			pass
+			log.info('argument {0} is not an index'.format(locator))
+			return (-1, self)
 
-		if is_index:
-			try:
-				return index, self[index]
-			except IndexError:
-				log.error('The index provided must from 0 to {0}'.format(len(self)-1))
-				return -1, self
-		else:
-			for i, navigable in enumerate(self):
-				if navigable.name == locator: 
-					return i, navigable
-			log.error('Could not locate {0}'.format(locator))
-			return -1, self
+		try:
+			return (index, self[index])
+		except IndexError:
+			log.error('The index provided must from 0 to {0}'.format(len(self)-1))
+			return (-1, self)
 
 
 	## --------------------------------------------------------
@@ -125,34 +118,66 @@ class Navigable(list):
 
 		## Reference to current navigable
 		if not locator or locator == 'self':
-			return self.index, self
+			return [(self.index, self)]
 
 
 		## Reference to parent navigable
 		elif locator == '..':
 			if not self.parent is None:
-				return self.parent.index, self.parent
+				return [(self.parent.index, self.parent)]
 			else:
 				log.error('{0} does not have a parent'.format(self.name))
-				return -1, self
+				return [(-1, self)]
 
 
 		## Reference to navigable through path
 		elif '/' in locator:
 			recursions = locator.split('/')
-			current_navigable = self
+			current_navigables = [(-1, self)]
 			try:
 				for recursion in recursions:
-					index, current_navigable = current_navigable.navigate(recursion)
-				return index, current_navigable
+					current_navigables = current_navigables[0][1].navigate(recursion)
+				return current_navigables
 			except AttributeError:
 				log.error('{0} is an invalid path'.format(locator))
-				return -1, self
+				return [(-1, self)]
+
+
+		## Reference to several navigables by intervals
+		elif ('-' in locator) or (',' in locator):
+			navigables = []
+			intervals = locator.split(',')
+			for interval in intervals:
+				bounds = interval.split('-')
+
+				if len(bounds) == 1:
+					navigables.append(self.locate(bounds[0]))
+
+				elif len(bounds) == 2:
+					try:
+						lo = int(bounds[0])
+						hi = int(bounds[1])
+					except ValueError:
+						log.info('Invalid interval syntax')
+						return [(-1, self)]
+
+					if not (hi > lo):
+						log.info('Intervals should be specified from smaller value to larger value. Ex: \'3-6\', not \'6-3\'.')
+						return [(-1, self)]
+
+					for i in range(lo, hi+1):
+						navigables.append((i, self[i]))
+
+				else:
+					log.info('Intervals must be composed of two numbers separated by a \'-\'. Ex: \'3-\'6.')
+					return [(-1, self)]
+
+			return navigables
 
 
 		## Reference to children in current navigable
 		else:
-			return self.locate(locator)
+			return [self.locate(locator)]
 
 
 	## --------------------------------------------------------
@@ -181,47 +206,48 @@ class Navigable(list):
 
 		else:
 			## Obtain navigable to ls
-			i, current_navigable = self.navigate(locator)
-			if i < 0: return
-
-			## prints info if navigable has no children
-			if len(current_navigable) == 0:
-				current_navigable.info()
-				return
+			navigables = self.navigate(locator)
+			for i, current_navigable in navigables:
+				if i < 0: return
 	
-			## sorting items to list by time
-			current_navigable.sort_by_time()
+				## prints info if navigable has no children
+				if len(current_navigable) == 0:
+					current_navigable.info()
+					continue
+		
+				## sorting items to list by time
+				current_navigable.sort_by_time()
+		
+				## figure out path to print
+				current_navigable_for_path = current_navigable
+				navigable_path = current_navigable_for_path.name
+				while not current_navigable_for_path.parent is None:
+					navigable_path = current_navigable_for_path.parent.name + '/' + navigable_path
+					current_navigable_for_path = current_navigable_for_path.parent
 	
-			## figure out path to print
-			current_navigable_for_path = current_navigable
-			navigable_path = current_navigable_for_path.name
-			while not current_navigable_for_path.parent is None:
-				navigable_path = current_navigable_for_path.parent.name + '/' + navigable_path
-				current_navigable_for_path = current_navigable_for_path.parent
-
-			log.info('In {0} : '.format(navigable_path))
-			log.info('-'*len(current_navigable[0].legend_string))
-			log.info(current_navigable[0].legend_string)
-			log.info('- '*(len(current_navigable[0].legend_string)/2))
-
-
-			for i, navigable in enumerate(current_navigable):
-
-				## skip hidden
-				if navigable.hide < 0: continue
-
-				## Gather arguments
-				args = []
-				for j in range(len(navigable.ls_pattern)-1):
-					if navigable.ls_pattern[j+1] == 'status':
-						args.append(definitions.kbook_status[navigable.status])
-
-					else:
-						args.append(getattr(navigable, navigable.ls_pattern[j+1]))
-
-				log.info(navigable.ls_pattern[0].format(*args))
-
-			log.info('-'*len(current_navigable[0].legend_string))
+				log.info('In {0} : '.format(navigable_path))
+				log.info('-'*len(current_navigable[0].legend_string))
+				log.info(current_navigable[0].legend_string)
+				log.info('- '*(len(current_navigable[0].legend_string)/2))
+	
+	
+				for j, navigable in enumerate(current_navigable):
+	
+					## skip hidden
+					if navigable.hide < 0: continue
+	
+					## Gather arguments
+					args = []
+					for k in range(len(navigable.ls_pattern)-1):
+						if navigable.ls_pattern[k+1] == 'status':
+							args.append(definitions.kbook_status[navigable.status])
+	
+						else:
+							args.append(getattr(navigable, navigable.ls_pattern[k+1]))
+	
+					log.info(navigable.ls_pattern[0].format(*args))
+	
+				log.info('-'*len(current_navigable[0].legend_string))
 
 
 	## --------------------------------------------------------
@@ -267,24 +293,26 @@ class Navigable(list):
 
 
 		elif not attribute:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			navigable.get()
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+				navigable.get()
 		else:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-				
-			if '__' in attribute or attribute in navigable.private:
-				log.info('{0} is private'.format(attribute))
-
-			if '_time' in attribute and not 'series' in attribute:
-				log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, time.ctime(getattr(navigable, attribute))))
-			else:
-				log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, getattr(navigable, attribute)))
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+					
+				if '__' in attribute or attribute in navigable.private:
+					log.info('{0} is private'.format(attribute))
+	
+				if '_time' in attribute and not 'series' in attribute:
+					log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, time.ctime(getattr(navigable, attribute))))
+				else:
+					log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, getattr(navigable, attribute)))
 
 
 	## --------------------------------------------------------
@@ -334,17 +362,18 @@ class Navigable(list):
 					return
 
 		else:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			if attribute in dir(navigable):
-				setattr(navigable, attribute, value)
-				log.info('Setting {0} to \'{1}\' for {2}'.format(attribute, value, navigable.name))
-				self.modified_time = time.time()
-			else:
-				log.error('{0} has no attribute called {1}'.format(navigable.name, attribute))
-				return
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+				if attribute in dir(navigable):
+					setattr(navigable, attribute, value)
+					log.info('Setting {0} to \'{1}\' for {2}'.format(attribute, value, navigable.name))
+					self.modified_time = time.time()
+				else:
+					log.error('{0} has no attribute called {1}'.format(navigable.name, attribute))
+					return
 
 
 	## --------------------------------------------------------
@@ -361,11 +390,12 @@ class Navigable(list):
 			for navigable in self:
 				navigable.close()
 		else:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			navigable.close()
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+				navigable.close()
 
 
 		## --------------------------------------------------------
@@ -385,11 +415,12 @@ class Navigable(list):
 			for navigable in self:
 				navigable.open()
 		else:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			navigable.open()
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+				navigable.open()
 
 
 
@@ -410,11 +441,12 @@ class Navigable(list):
 			for navigable in self:
 				navigable.submit()
 		else:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			navigable.submit()
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+				navigable.submit()
 
 
 	## --------------------------------------------------------
@@ -435,11 +467,12 @@ class Navigable(list):
 			for navigable in self:
 				navigable.retry()
 		else:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			navigable.retry()
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+				navigable.retry()
 
 
 	## --------------------------------------------------------
@@ -460,11 +493,12 @@ class Navigable(list):
 			for navigable in self:
 				navigable.kill()
 		else:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			navigable.kill()
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+				navigable.kill()
 
 
 	## ---------------------------------------------------------
@@ -499,11 +533,12 @@ class Navigable(list):
 				navigable.update()
 			self.evaluate_status()
 		else:
-			i, navigable = self.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(locator, self.name))
-				return
-			navigable.update()
+			navigables = self.navigate(locator)
+			for i, navigable in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(locator, self.name))
+					return
+				navigable.update()
 
 
 	## ---------------------------------------------------------

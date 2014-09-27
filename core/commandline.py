@@ -217,41 +217,13 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
-	def complete_ls(self, text, line, begidx, endidx):
-		"""
-		Autocomplete for the create types
-		"""
-
-		if not text:
-			completions = [item.name for item in self.book.location[:]]
-		else:
-			completions = [item.name for item in self.book.location[:] if item.name.startswith(text)]
-
-		return completions
-
-
-	## -------------------------------------------------------
 	def do_cd(self, arg):
 		"""
 		cd <index> : navigate the chains, jobs and submission.
 		             Type \'cd ..\' to go back
 		"""
 
-		index, self.book.location = self.book.location.navigate(arg)
-
-
-	## -------------------------------------------------------
-	def complete_cd(self, text, line, begidx, endidx):
-		"""
-		Autocomplete for the create types
-		"""
-
-		if not text:
-			completions = [item.name for item in self.book.location[:]]
-		else:
-			completions = [item.name for item in self.book.location[:] if item.name.startswith(text)]
-
-		return completions
+		index, self.book.location = self.book.location.navigate(arg)[0]
 
 
 	## -------------------------------------------------------
@@ -363,14 +335,15 @@ class CommandLine(Cmd):
 				self.book.location = spawn
 				self.book.location.recreate()
 		elif arg and children_are_versioned:
-			i, child = self.book.location.navigate(arg)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
-				return
-			spawn = child.copy()
-			if not spawn is None:
-				self.book.location.append(spawn)
-				spawn.recreate()
+			navigables = self.book.location.navigate(arg)
+			for i, child in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
+					return
+				spawn = child.copy()
+				if not spawn is None:
+					self.book.location.append(spawn)
+					spawn.recreate()
 		else:
 			log.error('Cannot copy object.')
 
@@ -402,11 +375,12 @@ class CommandLine(Cmd):
 		if (not arg) and current_is_versioned:
 			self.book.location.show_versions()
 		elif arg and children_are_versioned:
-			i, child = self.book.location.navigate(arg)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
-				return
-			child.show_versions()
+			navigables = self.book.location.navigate(arg)
+			for i, child in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
+					return
+				child.show_versions()
 		else:
 			log.error('Object is not versioned.')
 
@@ -438,9 +412,8 @@ class CommandLine(Cmd):
 			log.error('wrong arguments.')
 			return
 
-
-		current_is_versioned = False
-		children_are_versioned   = False
+		current_is_versioned   = False
+		children_are_versioned = False
 
 		try:
 			v = self.book.location.version
@@ -458,11 +431,12 @@ class CommandLine(Cmd):
 		if locator == 'self' and current_is_versioned:
 			self.book.location = self.book.location.get_version(version)
 		elif locator and children_are_versioned:
-			i, child = self.book.location.navigate(locator)
-			if i < 0:
-				log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
-				return
-			new_child = child.get_version(version)
+			navigables = self.book.location.navigate(locator)
+			for i, child in navigables:
+				if i < 0:
+					log.error('{0} does not exist in {1}'.format(arg, self.book.location.name))
+					return
+				new_child = child.get_version(version)
 		else:
 			log.error('Object is not versioned.')
 
@@ -550,43 +524,44 @@ class CommandLine(Cmd):
 		os.chdir(self.book.download_path)
 
 		## Get the navigable
-		i, navigable = self.book.location.navigate(arg)
-		if i < 0:
-			log.error('{0} does not exist'.format(arg))
-			return
-
-		if hasattr(navigable, 'version'):
-			script_name = '{0}.v{1}'.format(navigable.name, navigable.version)
-		else:
-			script_name = '{0}'.format(navigable.name)
-
-		try:
-			os.mkdir(script_name)
-		except OSError:
-			log.error('download directory {0} already exists.'.format(script_name))
-			return
-
-		os.chdir(os.path.join(self.book.download_path, script_name))
-
-		script = open('{0}.sh'.format(script_name), 'w')
-		script.write('#!/bin/bash\n\n')
-
-		job, output_datasets = navigable.generate_list('output_dataset')
-		for output_dataset in output_datasets:
-			if output_dataset:
-				if job.type == 'prun':
-					script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
-				if job.type == 'taskid':
-					script.write('dq2-get {0}\n'.format(output_dataset))
-
-		script.close()
-		script_path = os.path.join(self.book.download_path, script_name, '{0}.sh'.format(script_name))
-		permissions = os.stat(script_path)
-		os.chmod(script_path, permissions.st_mode | stat.S_IEXEC)
-
-		log.info('Created dq2-get script at {0}'.format(script_path))
-
-		os.chdir(self.book.path)
+		navigables = self.book.location.navigate(arg)
+		for i, navigable in navigables:
+			if i < 0:
+				log.error('{0} does not exist'.format(arg))
+				return
+	
+			if hasattr(navigable, 'version'):
+				script_name = '{0}.v{1}'.format(navigable.name, navigable.version)
+			else:
+				script_name = '{0}'.format(navigable.name)
+	
+			try:
+				os.mkdir(script_name)
+			except OSError:
+				log.error('download directory {0} already exists.'.format(script_name))
+				return
+	
+			os.chdir(os.path.join(self.book.download_path, script_name))
+	
+			script = open('{0}.sh'.format(script_name), 'w')
+			script.write('#!/bin/bash\n\n')
+	
+			job, output_datasets = navigable.generate_list('output_dataset')
+			for output_dataset in output_datasets:
+				if output_dataset:
+					if job.type == 'prun':
+						script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
+					if job.type == 'taskid':
+						script.write('dq2-get {0}\n'.format(output_dataset))
+	
+			script.close()
+			script_path = os.path.join(self.book.download_path, script_name, '{0}.sh'.format(script_name))
+			permissions = os.stat(script_path)
+			os.chmod(script_path, permissions.st_mode | stat.S_IEXEC)
+	
+			log.info('Created dq2-get script at {0}'.format(script_path))
+	
+			os.chdir(self.book.path)
 
 
 	## -------------------------------------------------------
@@ -595,31 +570,32 @@ class CommandLine(Cmd):
 		delete <index> : deletes object of the given index
 		"""
 
-		i, navigable = self.book.location.navigate(arg)
-		if i < 0:
-			log.error('No entry with index {0}'.format(arg))
-			return
-
-		if navigable.parent is None:
-			log.error('Cannot delete book, {0} has no parent.'.format(navigable.name))
-			return
-
-		if hasattr(navigable, 'version'):
-			if not navigable.previous is None:
-				navigable.previous.hide = 1
-				navigable.previous.current = True
-				navigable.previous.next = None
-
-		if not hasattr(navigable, 'command'):
-			try:
-				shutil.rmtree(navigable.path)
-			except OSError:
-				pass
-
-		navigable.parent.remove(navigable)
-		del navigable
-
-		self.save_book()
+		navigables = self.book.location.navigate(arg)
+		for i, navigable in navigables:
+			if i < 0:
+				log.error('No entry with index {0}'.format(arg))
+				return
+	
+			if navigable.parent is None:
+				log.error('Cannot delete book, {0} has no parent.'.format(navigable.name))
+				return
+	
+			if hasattr(navigable, 'version'):
+				if not navigable.previous is None:
+					navigable.previous.hide = 1
+					navigable.previous.current = True
+					navigable.previous.next = None
+	
+			if not hasattr(navigable, 'command'):
+				try:
+					shutil.rmtree(navigable.path)
+				except OSError:
+					pass
+	
+			navigable.parent.remove(navigable)
+			del navigable
+	
+			self.save_book()
 
 
 	## -------------------------------------------------------
