@@ -44,7 +44,10 @@ class Book(Navigable):
 			'save_chains',
 			'create_chain',
 			'submit',
-			'location'
+			'location',
+			'acquire_crontab',
+			'add_to_crontab',
+			'clean_crontab'
 		]
 
 		self.level = 0
@@ -116,7 +119,11 @@ class Book(Navigable):
  
 		pout_voms_lines = pout_voms.rstrip('\n').split('\n')
 
+		proxy_is_expired = False
+
 		for line in pout_voms_lines:
+			if 'timeleft' in line:
+				if '00:00:00' in line: proxy_is_expired = True
 			log.debug('    ' + line)
 		log.debug('')
 
@@ -135,6 +142,83 @@ class Book(Navigable):
 		self.preferences.print_all()
 
 		self.location = self
+
+		return proxy_is_expired
+
+
+	## --------------------------------------------------------
+	def acquire_crontab(self):
+		"""
+		Acquire cron jobs
+		"""
+
+		p = Popen(args='acrontab -l', stdout=PIPE, stderr=PIPE, shell=True)
+		p.wait()
+		pout, perr = p.communicate()
+		pout += '\n' + perr
+
+		return pout
+
+
+	## --------------------------------------------------------
+	def add_to_crontab(self, arg):
+		"""
+		Add a job to the crontab to follow-up jobs automatically
+		"""
+
+		## Obtain current machine
+		lxplus_node = os.environ['HOSTNAME']
+
+		crontab = self.acquire_crontab()
+
+		updated_crontab = open('crontab.tmp', 'w')
+		for line in crontab.split('\n'):
+			if './kBook.py' in line:
+				log.info('track : A kBook cron job already exists in the crontab:')
+				log.info('{0}'.format(line))
+				overwrite = raw_input('kBook : track : Overwrite? (y/n) > ')
+				if not overwrite == 'y':
+					log.info('Will not overwrite current cron job.')
+					return
+				else:
+					continue
+			if line:
+				updated_crontab.write('{0}\n'.format(line))
+
+		cronjob = '19 * * * * {0} export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase/; source $ATLAS_LOCAL_ROOT_BASE/packageSetups/atlasLocalPandaClientSetup.sh; cd /afs/cern.ch/user/m/mtm/kBook; ./kBook.py --scriptmode="{1}"\n'.format(lxplus_node, ';'.join(['update', 'retry', arg]))
+
+		log.info('Adding the following cron job to the cron tab:')
+		log.info(cronjob)
+
+		updated_crontab.write(cronjob)
+		updated_crontab.close()
+
+		p = Popen(args='acrontab < crontab.tmp', stdout=PIPE, stderr=PIPE, shell=True)
+		os.remove('crontab.tmp')
+
+
+		return
+
+
+	## --------------------------------------------------------
+	def clean_crontab(self):
+		"""
+		Cleans up the crontab of any kBook cron jobs
+		"""
+
+		crontab = self.acquire_crontab()
+
+		updated_crontab = open('crontab.tmp', 'w')
+		for line in crontab.split('\n'):
+			if not './kBook.py' in line :
+				if line:
+					updated_crontab.write('{0}\n'.format(line))
+		updated_crontab.close()
+
+		p = Popen(args='acrontab < crontab.tmp', stdout=PIPE, stderr=PIPE, shell=True)
+		os.remove('crontab.tmp')
+
+		return
 
 
 	## --------------------------------------------------------

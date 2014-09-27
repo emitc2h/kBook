@@ -246,9 +246,9 @@ class Navigable(list):
 				if '__' in att: continue
 				if att in self.private: continue
 				if '_time' in att and not 'series' in att:
-					log.info('{0:<23} = {1:<30}'.format(att, time.ctime(getattr(self, att))))
+					log.info('{0:<5} : {1:<23} = {2:<30}'.format(self.index, att, time.ctime(getattr(self, att))))
 				else:
-					log.info('{0:<23} = {1:<30}'.format(att, getattr(self, att)))
+					log.info('{0:<5} : {1:<23} = {2:<30}'.format(self.index, att, getattr(self, att)))
 			return
 
 		elif locator == 'all' and not attribute:
@@ -282,9 +282,9 @@ class Navigable(list):
 				log.info('{0} is private'.format(attribute))
 
 			if '_time' in attribute and not 'series' in attribute:
-				log.info('{0:<23} = {1:<30}'.format(attribute, time.ctime(getattr(navigable, attribute))))
+				log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, time.ctime(getattr(navigable, attribute))))
 			else:
-				log.info('{0:<23} = {1:<30}'.format(attribute, getattr(navigable, attribute)))
+				log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, getattr(navigable, attribute)))
 
 
 	## --------------------------------------------------------

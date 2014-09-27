@@ -6,7 +6,9 @@
 ##########################################################
 
 from cmd import Cmd
-import readline, os, sys, pickle, glob, shutil, stat
+import readline, os, sys, pickle, glob, shutil, stat, getpass
+from pandatools import PsubUtils, Client
+from subprocess import Popen, PIPE
 import logging as log
 from book import Book
 import definitions
@@ -48,7 +50,7 @@ class CommandLine(Cmd):
 
 			self.book   = Book('book', preferences)
 
-		self.book.prepare(preferences)
+		self.proxy_is_expired = self.book.prepare(preferences)
 		self.book.rebuild_hierarchy()
 
 
@@ -58,15 +60,27 @@ class CommandLine(Cmd):
 		runs the user interface
 		"""
 
+		if self.proxy_is_expired:
+			log.info('Proxy is expired, please generate a new one:')
+			PsubUtils.checkGridProxy('',True,False)
+
 		log.info('Begin interactive session (type \'help\' for assistance)')
 		self.cmdloop()
 
 
 	## -------------------------------------------------------
-	def execute(self, arg):
+	def execute_and_exit(self, arg):
 		"""
 		execute commands and quit (script mode)
 		"""
+
+		if self.proxy_is_expired:
+			log.info('')
+			log.info('Proxy is expired, cleaning the crontab ...')
+			self.book.clean_crontab()
+			log.info('Exiting.')
+			return
+
 
 		log.info('kBook running in script mode ...')
 		self.onecmd(arg)
@@ -79,7 +93,7 @@ class CommandLine(Cmd):
 		Overrides onecmd to enable parsing of multiple commands separated by semi-colons
 		"""
 
-		if ';' in arg:
+		if ';' in arg and not 'track' in arg:
 			commands = arg.split(';')
 			for command in commands:
 				Cmd.onecmd(self, command)
@@ -606,6 +620,60 @@ class CommandLine(Cmd):
 		del navigable
 
 		self.save_book()
+
+
+	## -------------------------------------------------------
+	def do_track(self, arg):
+		"""
+		track <commands> : Use acrontab to automatically update and retry tasks monitored in kBook
+		                   commands are additional commands to be run periodically
+		                   use 'cancel' as an argument to cancel the current tracking (if any)
+		"""
+
+		if arg == 'cancel':
+			log.info('Cleaning the crontab ...')
+			self.book.clean_crontab()
+			return
+
+		## Generate a proxy of the necessary duration
+		hours = raw_input('kBook : track : How many hours do you wish to track for? (max=96) ')
+		try:
+			if not (0 < int(hours) <= 96):
+				log.info('Number of hours ({0}) not allowed, aborting'.format(hours))
+				return
+		except ValueError:
+			log.info('Number of hours provided ({0}) is not an integer, aborting'.format(hours))
+			return
+
+		password_attempts   = 0
+
+		log.info('track : Enter your grid password (no more than 2 attempts are allowed) :')
+		while True:
+
+			pw = getpass.getpass()
+
+			p = Popen(args='voms-proxy-init -voms atlas -valid {0}:0 -pwstdin'.format(hours), stdout=PIPE, stderr=PIPE, stdin=PIPE, shell=True)
+			p.stdin.write(pw)
+
+			pout, perr = p.communicate()
+
+			for line in pout.split('\n'):
+				log.info('    {0}'.format(line))
+
+			pout += '\n' + perr
+
+			if 'Remote VOMS server contacted succesfully.' in pout:
+				break
+
+			password_attempts += 1
+			if password_attempts > 1:
+				log.info('Too many password attempts, aborting.')
+				return
+
+		## Prepare the crontab
+		self.book.add_to_crontab(arg)
+
+
 
 
 	## -------------------------------------------------------

@@ -68,6 +68,6 @@ the_commandline = CommandLine(preferences)
 if not args.commands:
 	the_commandline.run()
 else:
-	the_commandline.execute(args.commands)
+	the_commandline.execute_and_exit(args.commands)
 
 
