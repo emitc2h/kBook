@@ -171,7 +171,8 @@ class Book(Navigable):
 
 		## Schedule the first cron job 2 minutes from now
 		minutes = time.ctime(time.time())
-		minute = int(minutes.split(' ')[3].split(':')[1]) + 2
+		minute = int(minutes.split(' ')[-2].split(':')[1]) + 2
+
 		if minute > 60:
 			minute -= 60
 
