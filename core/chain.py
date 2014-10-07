@@ -11,6 +11,7 @@ import os, time
 import logging as log
 from job_prun import JobPrun
 from job_taskid import JobTaskID
+from job_pathena_trf import JobPathenaTrf
 from versioned import Versioned
 
 ## =======================================================
@@ -55,13 +56,14 @@ class Chain(Versioned):
 
 		new_job = None
 
+		path = os.path.join(self.path, 'job0000_v0')
+
 		if job_type == 'prun':
 			script_path      = kwargs['script_path']
 			use_root         = kwargs['use_root']
 			root_version     = kwargs['root_version']
 			output           = kwargs['output']
 			additional_files = kwargs['additional_files']
-			path             = os.path.join(self.path, 'job0000_v0')
 
 			new_job = JobPrun(
 				script_path,
@@ -79,7 +81,31 @@ class Chain(Versioned):
 			new_job = JobTaskID(
 				'job0000',
 				self,
-				os.path.join(self.path, 'job0000_v0'),
+				path,
+				input_file_path
+				)
+
+		if job_type == 'pathena-trf':
+
+			athena_release      = kwargs['athena_release']
+			testarea_path       = kwargs['testarea_path']
+			transform_type      = kwargs['transform_type']
+			input_dataset_type  = kwargs['input_dataset_type']
+			output_dataset_type = kwargs['output_dataset_type']
+			preexec             = kwargs['preexec']
+			postexec            = kwargs['postexec']
+
+			new_job = JobPathenaTrf(
+				athena_release,
+				testarea_path,
+				transform_type,
+				input_dataset_type,
+				output_dataset_type,
+				preexec,
+				postexec,
+				'job0000',
+				self,
+				path,
 				input_file_path
 				)
 

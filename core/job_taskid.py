@@ -58,7 +58,10 @@ class JobTaskID(Job):
 				
 				new_submission = Submission('submission{0}'.format(str(i).zfill(4)), self, '', '', self.path)
 				new_submission.input_dataset = new_jedi_task_dict['inDS'].split(',')[0]
-				new_submission.output_dataset = new_jedi_task_dict['outDS']
+
+				## Obtain the relevant output datasets
+				output_datasets = new_jedi_task_dict['outDS'].split(',')
+				new_submission.output_dataset = ','.join(filter(lambda d : not '.log' in d, output_datasets))
 				new_submission.jedi_task_dict = new_jedi_task_dict
 				new_submission.command = new_jedi_task_dict['cliParams']
 				self.append(new_submission)

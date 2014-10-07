@@ -146,11 +146,17 @@ class CommandLine(Cmd):
 		output           = ''
 		additional_files = []
 		panda_options    = ''
+		athena_release   = ''
+		testarea_path    = ''
+		preexec          = ''
+		postexec         = ''
+		input_dataset_type       = ''
+		output_dataset_type      = ''
+		transform_type   = ''
 
 		if job_type == 'prun':
 			## Path to script to be executed
 			script_path = self.ask_for_path('create : prun : please provide path to the script to be executed')
-
 			## Path to additional files to include
 			use_more_files = raw_input('kBook : create : prun : Any additional files needed (you can use *)? (y/n) > ')
 			if use_more_files == 'y':
@@ -160,20 +166,35 @@ class CommandLine(Cmd):
 						additional_files.append(use_more_files)
 					else:
 						break
-
 			## ROOT details
 			use_root    = raw_input('kBook : create : prun : Use ROOT? (y/n) > ')
 			if use_root == 'y':
 				use_root = True
 				root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 5.34.18) > ')
 				if not root_version: root_version = '5.34.18'
-
 			## Specify the name of the output files
 			output = raw_input('kBook : create : prun : provide names of output files to be stored (comma-separated) > ')
 
-			## Specify additional panda options
-			panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
 
+		if job_type == 'pathena-trf':
+			## Athena release
+			athena_release = raw_input('kBook : create : pathena-trf : which Athena release? > ')
+			## Path to test area
+			testarea_path = self.ask_for_path('create : pathena-trf : please provide path to the test area (leave empty if none)')
+			## transform type
+			transform_type = raw_input('kBook : create : pathena-trf : what transform type (Reco_tf or Generate_tf)? > ')
+			## input dataset type
+			input_dataset_type = raw_input('kBook : create : pathena-trf : what is the type of the input? (AOD, NTUP_VTXLUMI, ETC.) > ')
+			## output dataset type
+			output_dataset_type = raw_input('kBook : create : pathena-trf : what is the type of the desired output? (AOD, NTUP_VTXLUMI, ETC.) > ')
+			## pre-execution commands
+			preexec = raw_input('kBook : create : pathena-trf : Any preExec code? (leave empty if none) > ')
+			## pre-execution commands
+			postexec = raw_input('kBook : create : pathena-trf : Any postExec code? (leave empty if none) > ')
+
+
+		## Specify additional panda options
+		panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
 
 		self.book.create_chain(
 			chain_name,
@@ -184,7 +205,14 @@ class CommandLine(Cmd):
 			use_root=use_root,
 			root_version=root_version,
 			output=output,
-			additional_files=additional_files
+			additional_files=additional_files,
+			athena_release=athena_release,
+			testarea_path=testarea_path,      
+			preexec=preexec,     
+			postexec=postexec,   
+			input_dataset_type=input_dataset_type,  
+			output_dataset_type=output_dataset_type,
+			transform_type=transform_type,
 			)
 
 		self.save_book()
@@ -547,12 +575,13 @@ class CommandLine(Cmd):
 			script.write('#!/bin/bash\n\n')
 	
 			job, output_datasets = navigable.generate_list('output_dataset')
-			for output_dataset in output_datasets:
-				if output_dataset:
-					if job.type == 'prun':
-						script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
-					if job.type == 'taskid':
-						script.write('dq2-get {0}\n'.format(output_dataset))
+			for output_dataset_list in output_datasets:
+				for output_dataset in output_dataset_list.split(','):
+					if output_dataset:
+						if job.type == 'prun':
+							script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
+						if job.type == 'taskid':
+							script.write('dq2-get {0}\n'.format(output_dataset))
 	
 			script.close()
 			script_path = os.path.join(self.book.download_path, script_name, '{0}.sh'.format(script_name))

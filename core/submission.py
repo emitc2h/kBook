@@ -6,7 +6,7 @@
 ##               submission                             ##
 ##########################################################
 
-import os, time
+import os, time, sys
 import logging as log
 from subprocess import Popen, PIPE
 from navigable import Navigable
@@ -105,6 +105,28 @@ class Submission(Navigable):
 			return
 
 		os.chdir(self.path)
+
+		## Check if an athena setup is required
+		if self.parent.type == 'pathena-trf':
+			athena_is_setup = False
+			try:
+				current_athena   = os.environ['AtlasPatchVersion']
+				current_testarea = os.environ['TestArea']
+				if (current_athena == self.parent.athena_release) and (current_testarea == self.parent.testarea_path):
+					athena_is_setup = True
+			except KeyError:
+				pass
+
+			if not athena_is_setup:
+				log.info('Athena not setup, trying to setup.')
+				self.parent.setup_athena()
+				print os.environ['AtlasPatchVersion'], os.environ['TestArea']
+				sys.exit()
+			else:
+				log.info('Athena is setup!')
+				print os.environ['AtlasPatchVersion'], os.environ['TestArea']
+				sys.exit()
+
 
 		## Finish constructing the command
 		command = '{0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.compile_panda_options())
