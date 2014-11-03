@@ -259,6 +259,22 @@ class Navigable(list):
 
 
 	## --------------------------------------------------------
+	def list_of_attributes(self):
+		"""
+		obtain a list of attributes
+		"""
+
+		attributes = []
+		for att in dir(self):
+			if '__' in att: continue
+			if att in self.private: continue
+			attributes.append(att)
+
+		return attributes
+
+
+
+	## --------------------------------------------------------
 	def get(self, locator='', attribute=''):
 		"""
 		Get the value for a given parameter of either the current object
@@ -308,6 +324,11 @@ class Navigable(list):
 					
 				if '__' in attribute or attribute in navigable.private:
 					log.info('{0} is private'.format(attribute))
+					return
+
+				if not attribute in self.list_of_attributes():
+					log.error('{0} is not an attribute of {1}'.format(attribute, self.name))
+					return
 	
 				if '_time' in attribute and not 'series' in attribute:
 					log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, time.ctime(getattr(navigable, attribute))))

@@ -156,3 +156,28 @@ class Versioned(Navigable):
 		"""
 
 
+	## ---------------------------------------------------------
+	def get(self, locator='', attribute=''):
+		"""
+		Skip older versions
+		"""
+
+		if not self.current:
+			return
+
+		Navigable.get(self, locator, attribute)
+
+
+	## ---------------------------------------------------------
+	def set(self, locator='', attribute='', value=''):
+		"""
+		Skip older versions
+		"""
+
+		if not self.current:
+			return
+
+		Navigable.set(self, locator, attribute, value)
+
+
+

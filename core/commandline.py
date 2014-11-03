@@ -277,6 +277,44 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def complete_get(self, text, line, begidx, endidx):
+		"""
+		Autocomplete for the get arguments
+		"""
+
+		## Get argument position
+		try:
+			position = line.split(' ').index(text)
+		except ValueError:
+			position = -1
+
+		if position == 0:
+			return []
+
+		if position == 1:
+			if not text:
+				completions = definitions.special_indices
+			else:
+				completions = [item for item in definitions.special_indices if item.startswith(text)]
+
+		if position == 2:
+			index = line.split(' ')[1]
+			if index == 'self':
+				list_of_attributes = self.book.location.list_of_attributes()
+			elif index == 'all':
+				list_of_attributes = self.book.location[0].list_of_attributes()
+			else:
+				list_of_attributes = self.book.location[int(index)].list_of_attributes()
+
+			if not text:
+				completions = list_of_attributes
+			else:
+				completions = [item for item in list_of_attributes if item.startswith(text)]
+
+		return completions
+
+
+	## -------------------------------------------------------
 	def do_set(self, arg):
 		"""
 		set <index> <attribute> <value> : Set the specified attribute of the object of the given index to value.
@@ -302,6 +340,15 @@ class CommandLine(Cmd):
 			value = arguments[2]
 
 		self.book.location.set(index, attribute, value)
+
+
+	## -------------------------------------------------------
+	def complete_set(self, text, line, begidx, endidx):
+		"""
+		Same completion rules as get
+		"""
+
+		return self.complete_get(text, line, begidx, endidx)
 
 
 	## -------------------------------------------------------

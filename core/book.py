@@ -47,7 +47,8 @@ class Book(Navigable):
 			'location',
 			'acquire_crontab',
 			'add_to_crontab',
-			'clean_crontab'
+			'clean_crontab',
+			'list_of_attributes'
 		]
 
 		self.level = 0
