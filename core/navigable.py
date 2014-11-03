@@ -174,6 +174,16 @@ class Navigable(list):
 
 			return navigables
 
+		## Reference to several navigable by status
+		elif (locator in definitions.kbook_status_list):
+			navigables = []
+			for i, navigable in enumerate(self):
+				if navigable.status == definitions.kbook_status_reversed[locator]:
+					navigables.append((i, self[i]))
+
+			return navigables
+
+
 
 		## Reference to children in current navigable
 		else:
@@ -204,11 +214,57 @@ class Navigable(list):
 			for navigable in self:
 				navigable.ls()
 
+		elif locator in definitions.kbook_status_list:
+
+			## prints info if navigable has no children
+			if len(self) == 0:
+				self.info()
+				return
+	
+			## sorting items to list by time
+			self.sort_by_time()
+	
+			## figure out path to print
+			current_navigable_for_path = self
+			navigable_path = current_navigable_for_path.name
+			while not current_navigable_for_path.parent is None:
+				navigable_path = current_navigable_for_path.parent.name + '/' + navigable_path
+				current_navigable_for_path = current_navigable_for_path.parent
+
+			log.info('In {0} : '.format(navigable_path))
+			log.info('-'*len(self[0].legend_string))
+			log.info(self[0].legend_string)
+			log.info('- '*(len(self[0].legend_string)/2))
+
+			## Obtain navigables to ls
+			navigables = self.navigate(locator)
+			for j, navigable in navigables:
+
+				## skip hidden
+				if navigable.hide < 0: continue
+
+				## Gather arguments
+				args = []
+				for k in range(len(navigable.ls_pattern)-1):
+					if navigable.ls_pattern[k+1] == 'status':
+						args.append(definitions.kbook_status[navigable.status])
+
+					else:
+						args.append(getattr(navigable, navigable.ls_pattern[k+1]))
+
+				log.info(navigable.ls_pattern[0].format(*args))
+
+			log.info('-'*len(self[0].legend_string))
+
+
 		else:
 			## Obtain navigable to ls
 			navigables = self.navigate(locator)
 			for i, current_navigable in navigables:
 				if i < 0: return
+
+				## skip hidden
+				if current_navigable.hide < 0: continue
 	
 				## prints info if navigable has no children
 				if len(current_navigable) == 0:

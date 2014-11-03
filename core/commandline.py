@@ -245,6 +245,21 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def complete_ls(self, text, line, begidx, endidx):
+		"""
+		autocomplete for ls
+		"""
+
+		if not text:
+			completions = definitions.kbook_status_list + definitions.special_indices
+		else:
+			completions = [item for item in definitions.kbook_status_list + definitions.special_indices if item.startswith(text)]
+
+		return completions
+
+
+
+	## -------------------------------------------------------
 	def do_cd(self, arg):
 		"""
 		cd <index> : navigate the chains, jobs and submission.
