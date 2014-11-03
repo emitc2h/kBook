@@ -619,7 +619,7 @@ class Navigable(list):
 
 
 	## ---------------------------------------------------------
-	def generate_list(self, attribute, locator=''):
+	def generate_list(self, attribute, locator='', status=None):
 		"""
 		generates a list containing a particular attribute of the lowest level navigable
 		"""
@@ -627,11 +627,19 @@ class Navigable(list):
 		values = []
 
 		if hasattr(self, attribute):
-			return self.parent, [getattr(self, attribute)]
+			if status is None:
+				return self.parent, [getattr(self, attribute)]
+			else:
+				if self.status == definitions.kbook_status_reversed[status]:
+					return self.parent, [getattr(self, attribute)]
+				else:
+					return self.parent, []
+
 		else:
 			for navigable in self:
-				current_parent, current_list = navigable.generate_list(attribute)
+				current_parent, current_list = navigable.generate_list(attribute, status=status)
 				values += current_list
+
 			return current_parent, values
 
 

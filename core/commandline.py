@@ -308,15 +308,15 @@ class CommandLine(Cmd):
 
 		if position == 1:
 			if not text:
-				completions = definitions.special_indices
+				completions = (definitions.special_indices + definitions.kbook_status_list)
 			else:
-				completions = [item for item in definitions.special_indices if item.startswith(text)]
+				completions = [item for item in (definitions.special_indices + definitions.kbook_status_list) if item.startswith(text)]
 
 		if position == 2:
 			index = line.split(' ')[1]
 			if index == 'self':
 				list_of_attributes = self.book.location.list_of_attributes()
-			elif index == 'all':
+			elif index == 'all' or index in definitions.kbook_status_list:
 				list_of_attributes = self.book.location[0].list_of_attributes()
 			else:
 				list_of_attributes = self.book.location[int(index)].list_of_attributes()
@@ -608,35 +608,49 @@ class CommandLine(Cmd):
 	## -------------------------------------------------------
 	def do_dq2get(self, arg):
 		"""
-		dq2get <index> : generates a dq2-get shell script in the kbook directory
+		dq2get <index> <status> : generates a dq2-get shell script in the kbook directory only including submissions
+		                          with the specified status (leave empty for all)
 		"""
 
 		os.chdir(self.book.download_path)
 
+		parts = arg.split(' ')
+		locator = parts[0]
+
+		if len(parts) == 1:
+			status = None
+		elif len(parts) == 2:
+			status = parts[1]
+
 		## Get the navigable
-		navigables = self.book.location.navigate(arg)
+		navigables = self.book.location.navigate(locator)
 		for i, navigable in navigables:
 			if i < 0:
-				log.error('{0} does not exist'.format(arg))
+				log.error('{0} does not exist'.format(locator))
 				return
 	
 			if hasattr(navigable, 'version'):
-				script_name = '{0}.v{1}'.format(navigable.name, navigable.version)
+				script_dir_name = '{0}.v{1}'.format(navigable.name, navigable.version)
 			else:
-				script_name = '{0}'.format(navigable.name)
+				script_dir_name = '{0}'.format(navigable.name)
 	
 			try:
-				os.mkdir(script_name)
+				os.mkdir(script_dir_name)
 			except OSError:
-				log.error('download directory {0} already exists.'.format(script_name))
-				return
+				log.warning('download directory {0} already exists.'.format(script_dir_name))
 	
-			os.chdir(os.path.join(self.book.download_path, script_name))
+			os.chdir(os.path.join(self.book.download_path, script_dir_name))
 	
-			script = open('{0}.sh'.format(script_name), 'w')
+
+			if status is None:
+				script_name = '{0}.sh'.format(script_dir_name)
+			else:
+				script_name = '{0}-{1}.sh'.format(script_dir_name, status)
+
+			script = open(script_name, 'w')
 			script.write('#!/bin/bash\n\n')
 	
-			job, output_datasets = navigable.generate_list('output_dataset')
+			job, output_datasets = navigable.generate_list('output_dataset', status=status)
 			for output_dataset_list in output_datasets:
 				for output_dataset in output_dataset_list.split(','):
 					if output_dataset:
@@ -646,13 +660,37 @@ class CommandLine(Cmd):
 							script.write('dq2-get {0}\n'.format(output_dataset))
 	
 			script.close()
-			script_path = os.path.join(self.book.download_path, script_name, '{0}.sh'.format(script_name))
+			script_path = os.path.join(self.book.download_path, script_dir_name, script_name)
 			permissions = os.stat(script_path)
 			os.chmod(script_path, permissions.st_mode | stat.S_IEXEC)
 	
 			log.info('Created dq2-get script at {0}'.format(script_path))
 	
 			os.chdir(self.book.path)
+
+
+	## -------------------------------------------------------
+	def complete_dq2get(self, text, line, begidx, endidx):
+		"""
+		autocomplete for dq2get
+		"""
+
+		## Get argument position
+		try:
+			position = line.split(' ').index(text)
+		except ValueError:
+			position = -1
+
+		if position <= 1:
+			return []
+
+		if position == 2:
+			if not text:
+				completions = definitions.kbook_status_list
+			else:
+				completions = [item for item in definitions.kbook_status_list if item.startswith(text)]
+
+		return completions
 
 
 	## -------------------------------------------------------
