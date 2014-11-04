@@ -376,6 +376,15 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def complete_close(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		return self.complete_status(text, line, begidx, endidx)
+
+
+	## -------------------------------------------------------
 	def do_open(self, arg):
 		"""
 		open <index> : reopens a chain, job or submission for further updates
@@ -386,6 +395,15 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def complete_open(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		return self.complete_status(text, line, begidx, endidx)
+
+
+	## -------------------------------------------------------
 	def do_submit(self, arg):
 		"""
 		submit <index> : submit a chain, job or submission
@@ -393,6 +411,15 @@ class CommandLine(Cmd):
 
 		self.book.location.submit(arg)
 		self.save_book()
+
+
+	## -------------------------------------------------------
+	def complete_submit(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		return self.complete_status(text, line, begidx, endidx)
 
 
 	## -------------------------------------------------------
@@ -438,6 +465,15 @@ class CommandLine(Cmd):
 			log.error('Cannot copy object.')
 
 		self.save_book()
+
+
+	## -------------------------------------------------------
+	def complete_copy(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		return self.complete_status(text, line, begidx, endidx)
 
 
 		## -------------------------------------------------------
@@ -588,12 +624,30 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def complete_update(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		return self.complete_status(text, line, begidx, endidx)
+
+
+	## -------------------------------------------------------
 	def do_retry(self, arg):
 		"""
 		retry <index> : retries unfinished submissions under the given index
 		"""
 
 		self.book.location.retry(arg)
+
+
+	## -------------------------------------------------------
+	def complete_retry(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		return self.omplete_status(text, line, begidx, endidx)
 
 
 	## -------------------------------------------------------
@@ -606,9 +660,18 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def complete_kill(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		return self.complete_status(text, line, begidx, endidx)
+
+
+	## -------------------------------------------------------
 	def do_dq2get(self, arg):
 		"""
-		dq2get <index> <status> : generates a dq2-get shell script in the kbook directory only including submissions
+		dq2get <index> <status> : generates a dq2-get shell script in the kbook download directory only including submissions
 		                          with the specified status (leave empty for all)
 		"""
 
@@ -665,8 +728,10 @@ class CommandLine(Cmd):
 			os.chmod(script_path, permissions.st_mode | stat.S_IEXEC)
 	
 			log.info('Created dq2-get script at {0}'.format(script_path))
+
+			os.chdir(self.book.download_path)
 	
-			os.chdir(self.book.path)
+		os.chdir(self.book.path)
 
 
 	## -------------------------------------------------------
@@ -725,6 +790,15 @@ class CommandLine(Cmd):
 			del navigable
 	
 			self.save_book()
+
+
+	## -------------------------------------------------------
+	def complete_delete(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		return self.complete_status(text, line, begidx, endidx)
 
 
 	## -------------------------------------------------------
@@ -837,6 +911,27 @@ class CommandLine(Cmd):
 		os.chdir(cwd)
 
 		return absolute_path
+
+
+	## -------------------------------------------------------
+	def complete_status(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+		## Get argument position
+		try:
+			position = line.split(' ').index(text)
+		except ValueError:
+			position = -1
+
+		if position == 1:
+			if not text:
+				completions = definitions.kbook_status_list
+			else:
+				completions = [item for item in definitions.kbook_status_list if item.startswith(text)]
+
+		return completions
 
 
 	## ---------------------------------------------------------

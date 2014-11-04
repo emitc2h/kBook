@@ -64,7 +64,8 @@ class Navigable(list):
 			'status_string',
 			'evaluate_status',
 			'update',
-			'generate_list'
+			'generate_list',
+			'list_of_attributes'
 			]
 
 		self.level = 0
@@ -374,6 +375,7 @@ class Navigable(list):
 		else:
 			navigables = self.navigate(locator)
 			for i, navigable in navigables:
+
 				if i < 0:
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
@@ -382,7 +384,7 @@ class Navigable(list):
 					log.info('{0} is private'.format(attribute))
 					return
 
-				if not attribute in self.list_of_attributes():
+				if not attribute in navigable.list_of_attributes():
 					log.error('{0} is not an attribute of {1}'.format(attribute, self.name))
 					return
 	

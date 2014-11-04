@@ -43,7 +43,7 @@ kbook_status = [
 
 ## =======================================================
 kbook_status_reversed = {
-	'not-submitted'  : 0,
+	'not-submitted' : 0,
 	'cancelled'     : 1,
 	'unfinished'    : 2,
 	'running'       : 3,
