@@ -853,6 +853,19 @@ class CommandLine(Cmd):
 		self.book.add_to_crontab(arg)
 
 
+	## -------------------------------------------------------
+	def complete_track(self, text, line, begidx, endidx):
+		"""
+		autocomplete index to statuses
+		"""
+
+
+		if not text:
+			completions = ['cancel']
+		else:
+			completions = [item for item in ['cancel'] if item.startswith(text)]
+
+		return completions
 
 
 	## -------------------------------------------------------
