@@ -22,7 +22,7 @@ class Chain(Versioned):
 
 
 	## -------------------------------------------------------
-	def __init__(self, name, parent, panda_options, path, initial_job_type, input_file_path, **kwargs):
+	def __init__(self, name, parent, panda_options, path, input_file_path, job_specific):
 		"""
 		Constructor
 		"""
@@ -43,11 +43,11 @@ class Chain(Versioned):
 		self.legend_string = 'index : name                      : status        : version'
 		self.ls_pattern    = ('{0:<5} : {1:<25} : {2:<22} : {3:<5}', 'index', 'name', 'status', 'version')
 
-		self.create_job(input_file_path, initial_job_type, **kwargs)
+		self.create_job(input_file_path, job_specific)
 
 
 	## --------------------------------------------------------
-	def create_job(self, input_file_path, job_type, **kwargs):
+	def create_job(self, input_file_path, job_specific):
 		"""
 		Creates a job and append to the job list
 		"""
@@ -58,56 +58,16 @@ class Chain(Versioned):
 
 		path = os.path.join(self.path, 'job0000_v0')
 
-		if job_type == 'prun':
-			script_path      = kwargs['script_path']
-			use_root         = kwargs['use_root']
-			root_version     = kwargs['root_version']
-			output           = kwargs['output']
-			additional_files = kwargs['additional_files']
+		job_type = job_specific['job_type']
 
-			new_job = JobPrun(
-				script_path,
-				use_root,
-				root_version,
-				output,
-				additional_files,
-				'job0000',
-				self,
-				path,
-				input_file_path
-				)
+		if job_type == 'prun':
+			new_job = JobPrun('job0000', self, path, input_file_path, job_specific)
 
 		if job_type == 'taskid':
-			new_job = JobTaskID(
-				'job0000',
-				self,
-				path,
-				input_file_path
-				)
+			new_job = JobTaskID('job0000', self, path, input_file_path, job_specific)
 
 		if job_type == 'pathena-trf':
-
-			athena_release      = kwargs['athena_release']
-			testarea_path       = kwargs['testarea_path']
-			transform_type      = kwargs['transform_type']
-			input_dataset_type  = kwargs['input_dataset_type']
-			output_dataset_type = kwargs['output_dataset_type']
-			preexec             = kwargs['preexec']
-			postexec            = kwargs['postexec']
-
-			new_job = JobPathenaTrf(
-				athena_release,
-				testarea_path,
-				transform_type,
-				input_dataset_type,
-				output_dataset_type,
-				preexec,
-				postexec,
-				'job0000',
-				self,
-				path,
-				input_file_path
-				)
+			new_job = JobPathenaTrf('job0000', self, path, input_file_path, job_specific)
 
 		self.append(new_job)
 

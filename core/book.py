@@ -242,7 +242,7 @@ class Book(Navigable):
 
 
 	## --------------------------------------------------------
-	def create_chain(self, name, chain_type, input_file_path, panda_options, **kwargs):
+	def create_chain(self, name, chain_type, input_file_path, panda_options, job_specific):
 		"""
 		Create a chain
 		"""
@@ -256,7 +256,7 @@ class Book(Navigable):
 			return
 
 
-		new_chain = Chain(name, self, panda_options, chain_path, chain_type, input_file_path, **kwargs)
+		new_chain = Chain(name, self, panda_options, chain_path, input_file_path, job_specific)
 		self.append(new_chain)
 
 

@@ -6,7 +6,7 @@
 ##               and config used on many input datasets ##
 ##########################################################
 
-import os, shutil, time
+import os, shutil, time, subprocess, select
 import logging as log
 from submission import Submission
 from versioned import Versioned
@@ -19,7 +19,7 @@ class Job(Versioned):
 	"""
 
 	## -------------------------------------------------------
-	def __init__(self, name, parent, path, input_file_path):
+	def __init__(self, name, parent, path, input_file_path, job_specific):
 		"""
 		Constructor
 		"""
@@ -30,12 +30,14 @@ class Job(Versioned):
 		self.type             = ''
 		self.path             = path
 		self.input_file_path  = input_file_path
+		self.job_specific     = job_specific
 		self.command          = ''
 		self.private += [
 			'read_input_file',
 			'create_directory',
 			'construct_command',
-			'generate_output_dataset_names'
+			'generate_output_dataset_names',
+			'shell'
 		]
 
 		self.level = 2
@@ -48,6 +50,16 @@ class Job(Versioned):
 
 		self.legend_string = 'index : status        : progress : version'
 		self.ls_pattern    = ('{0:<5} : {2:<22} : {2:<8} : {3:<5}', 'index', 'status', 'completion', 'version')
+
+		self.shell = None
+		self.poll  = None
+
+
+	## -------------------------------------------------------
+	def initialize(self):
+		"""
+		initialize the job directory, command, etc.
+		"""
 
 		self.create_directory()
 		self.construct_command()
@@ -135,6 +147,16 @@ class Job(Versioned):
 			self.completion = '{0:.1%}'.format(raw_percentage)
 
 		self.completion_time_series.append((time.time(), raw_percentage))
+
+
+	## ---------------------------------------------------------
+	def start_shell(self):
+		"""
+		Start the job's shell
+		"""
+
+		
+
 
 
 		

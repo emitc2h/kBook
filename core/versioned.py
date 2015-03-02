@@ -51,7 +51,7 @@ class Versioned(Navigable):
 			log.error('Please spawn from the most recent version.')
 			return None
 
-		new_version = copy.deepcopy(self)
+		new_version = copy.copy(self)
 		new_version.creation_time = time.time()
 		new_version.modified_time = time.time()
 		new_version.version = self.version + 1

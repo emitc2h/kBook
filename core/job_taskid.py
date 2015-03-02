@@ -12,6 +12,18 @@ import logging as log
 from submission import Submission
 from pandatools import Client
 
+## -------------------------------------------------------
+def gather(ask_for_path):
+	"""
+	Gather the information from the user to create the job
+	"""
+
+	job_specific = {}
+	job_specific['job_type'] = 'taskid'
+
+	return job_specific
+
+
 ## =======================================================
 class JobTaskID(Job):
 	"""
@@ -28,10 +40,12 @@ class JobTaskID(Job):
 
 		Job.__init__(self, *args, **kwargs)
 
-		self.type         = 'taskid'
+		self.type = 'taskid'
 
 		self.legend_string = 'index : type         : status        : progress'
 		self.ls_pattern    = ('{0:<5} : {1:<12} : {2:<22} : {3:<8}', 'index', 'type', 'status', 'completion')
+
+		self.initialize()
 
 
 	## -------------------------------------------------------

@@ -9,6 +9,36 @@
 import os, shutil, glob, subprocess
 from job import Job
 
+## -------------------------------------------------------
+def gather(ask_for_path):
+	"""
+	Gather the information from the user to create the job
+	"""
+
+	## create dictionary
+	job_specific = {}
+
+	job_specific['job_type'] = 'pathena-trf'
+
+	## Athena release
+	job_specific['athena_release'] = raw_input('kBook : create : pathena-trf : which Athena release? > ')
+	## Path to test area
+	job_specific['testarea_path'] = ask_for_path('create : pathena-trf : please provide path to the test area (leave empty if none)')
+	## transform type
+	job_specific['transform_type'] = raw_input('kBook : create : pathena-trf : what transform type (Reco_tf or Generate_tf)? > ')
+	## input dataset type
+	job_specific['input_dataset_type'] = raw_input('kBook : create : pathena-trf : what is the type of the input? (AOD, NTUP_VTXLUMI, ETC.) > ')
+	## output dataset type
+	job_specific['output_dataset_type'] = raw_input('kBook : create : pathena-trf : what is the type of the desired output? (AOD, NTUP_VTXLUMI, ETC.) > ')
+	## pre-execution commands
+	job_specific['preexec'] = raw_input('kBook : create : pathena-trf : Any preExec code? (leave empty if none) > ')
+	## pre-execution commands
+	job_specific['postexec'] = raw_input('kBook : create : pathena-trf : Any postExec code? (leave empty if none) > ')
+
+	return job_specific
+
+
+
 ## =======================================================
 class JobPathenaTrf(Job):
 	"""
@@ -16,24 +46,23 @@ class JobPathenaTrf(Job):
 	be used on many input datasets
 	"""
 
-
 	## -------------------------------------------------------
-	def __init__(self, athena_release, testarea_path, transform_type, input_dataset_type, output_dataset_type, preexec, postexec, *args, **kwargs):
+	def __init__(self, *args, **kwargs):
 		"""
 		Constructor
 		"""
 
-		self.athena_release      = athena_release
-
-		self.testarea_path       = testarea_path
-		self.transform_type      = transform_type
-
-		self.input_dataset_type  = input_dataset_type
-		self.output_dataset_type = output_dataset_type
-		self.preexec             = preexec
-		self.postexec            = postexec
-
 		Job.__init__(self, *args, **kwargs)
+
+		self.athena_release      = job_specific['athena_release']
+
+		self.testarea_path       = job_specific['testarea_path']
+		self.transform_type      = job_specific['transform_type']
+
+		self.input_dataset_type  = job_specific['input_dataset_type']
+		self.output_dataset_type = job_specific['output_dataset_type']
+		self.preexec             = job_specific['preexec']
+		self.postexec            = job_specific['postexec']
 
 		self.private += [
 			'setup_athena'
@@ -44,33 +73,33 @@ class JobPathenaTrf(Job):
 		self.legend_string = 'index : type         : output dataset type : status        : progress : version'
 		self.ls_pattern    = ('{0:<5} : {1:<12} : {2:<19} : {3:<22} : {4:<8} : {5:<5}', 'index', 'type', 'output_dataset_type', 'status', 'completion', 'version')
 
-
-	## --------------------------------------------------------
-	def create_directory(self):
-		"""
-		copy the script over
-		"""
-
-		Job.create_directory(self)
-		if self.testarea_path:
-			os.symlink(self.testarea_path, 'TestArea')
-		else:
-			self.testarea_path = self.path
+		self.initialize()
 
 
-	## --------------------------------------------------------
-	def construct_command(self):
-		"""
-		constructs a prun command
-		"""
+	# ## --------------------------------------------------------
+	# def create_directory(self):
+	# 	"""
+	# 	copy the testarea code over in a new directory, omitting the compiled files
+	# 	"""
 
-		self.command = 'pathena --trf="{transform_type}.py input{input_type}File=%IN output{output_type}File=%OUT.root autoConfiguration=everything maxEvents=-1" '.format(transform_type=self.transform_type, input_type=self.input_dataset_type, output_type=self.output_dataset_type)
-		if self.preexec:
-			self.command += 'preExec=\'{preexec}\' '.format(preexec=self.preexec)
-		if self.postexec:
-			self.command += 'postExec=\'{postexec}\' '.format(postexec=self.postexec)
+	# 	Job.create_directory(self)
+	# 	if self.testarea_path:
+			
 
-		self.command += '--inDS {input} --outDS {output}'
+
+	# ## --------------------------------------------------------
+	# def construct_command(self):
+	# 	"""
+	# 	constructs a prun command
+	# 	"""
+
+	# 	self.command = 'pathena --trf="{transform_type}.py input{input_type}File=%IN output{output_type}File=%OUT.root autoConfiguration=everything maxEvents=-1" '.format(transform_type=self.transform_type, input_type=self.input_dataset_type, output_type=self.output_dataset_type)
+	# 	if self.preexec:
+	# 		self.command += 'preExec=\'{preexec}\' '.format(preexec=self.preexec)
+	# 	if self.postexec:
+	# 		self.command += 'postExec=\'{postexec}\' '.format(postexec=self.postexec)
+
+	# 	self.command += '--inDS {input} --outDS {output}'
 
 
 	## -------------------------------------------------------
@@ -108,8 +137,6 @@ class JobPathenaTrf(Job):
 		"""
 		Setup Athena for job submission
 		"""
-
-		os.system('AtlasProdRelease={athena_release},slc5,testarea={testarea_path}; export AtlasSetup=/afs/cern.ch/atlas/software/dist/AtlasSetup; source $AtlasSetup/scripts/asetup.sh $AtlasProdRelease'.format(athena_release=self.athena_release, testarea_path=self.testarea_path))
 
 
 

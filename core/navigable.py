@@ -203,7 +203,7 @@ class Navigable(list):
 
 
 	## --------------------------------------------------------
-	def ls(self, locator=''):
+	def ls(self, locator='', option=''):
 		"""
 		lists information about the children
 		"""
@@ -242,7 +242,8 @@ class Navigable(list):
 			for j, navigable in navigables:
 
 				## skip hidden
-				if navigable.hide < 0: continue
+				if not option == 'hidden':
+					if navigable.hide < 0: continue
 
 				## Gather arguments
 				args = []
@@ -265,7 +266,8 @@ class Navigable(list):
 				if i < 0: return
 
 				## skip hidden
-				if current_navigable.hide < 0: continue
+				if not option == 'hidden':
+					if current_navigable.hide < 0: continue
 	
 				## prints info if navigable has no children
 				if len(current_navigable) == 0:
@@ -291,7 +293,8 @@ class Navigable(list):
 				for j, navigable in enumerate(current_navigable):
 	
 					## skip hidden
-					if navigable.hide < 0: continue
+					if not option == 'hidden':
+						if navigable.hide < 0: continue
 	
 					## Gather arguments
 					args = []

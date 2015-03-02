@@ -140,80 +140,16 @@ class CommandLine(Cmd):
 
 
 		## job type specific input
-		script_path      = ''
-		use_root         = False
-		root_version     = ''
-		output           = ''
-		additional_files = []
-		panda_options    = ''
-		athena_release   = ''
-		testarea_path    = ''
-		preexec          = ''
-		postexec         = ''
-		input_dataset_type       = ''
-		output_dataset_type      = ''
-		transform_type   = ''
+		if job_type == 'prun':        from job_prun        import gather
+		if job_type == 'pathena-trf': from job_pathena_trf import gather
+		if job_type == 'taskid':      from job_taskid      import gather
 
-		if job_type == 'prun':
-			## Path to script to be executed
-			script_path = self.ask_for_path('create : prun : please provide path to the script to be executed')
-			## Path to additional files to include
-			use_more_files = raw_input('kBook : create : prun : Any additional files needed (you can use *)? (y/n) > ')
-			if use_more_files == 'y':
-				while(True):
-					use_more_files = self.ask_for_path('create : prun : add file (type \'n\' if no more files)')
-					if not os.path.basename(use_more_files) == 'n':
-						additional_files.append(use_more_files)
-					else:
-						break
-			## ROOT details
-			use_root    = raw_input('kBook : create : prun : Use ROOT? (y/n) > ')
-			if use_root == 'y':
-				use_root = True
-				root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 5.34.18) > ')
-				if not root_version: root_version = '5.34.18'
-			## Specify the name of the output files
-			output = raw_input('kBook : create : prun : provide names of output files to be stored (comma-separated) > ')
-
-
-		if job_type == 'pathena-trf':
-			## Athena release
-			athena_release = raw_input('kBook : create : pathena-trf : which Athena release? > ')
-			## Path to test area
-			testarea_path = self.ask_for_path('create : pathena-trf : please provide path to the test area (leave empty if none)')
-			## transform type
-			transform_type = raw_input('kBook : create : pathena-trf : what transform type (Reco_tf or Generate_tf)? > ')
-			## input dataset type
-			input_dataset_type = raw_input('kBook : create : pathena-trf : what is the type of the input? (AOD, NTUP_VTXLUMI, ETC.) > ')
-			## output dataset type
-			output_dataset_type = raw_input('kBook : create : pathena-trf : what is the type of the desired output? (AOD, NTUP_VTXLUMI, ETC.) > ')
-			## pre-execution commands
-			preexec = raw_input('kBook : create : pathena-trf : Any preExec code? (leave empty if none) > ')
-			## pre-execution commands
-			postexec = raw_input('kBook : create : pathena-trf : Any postExec code? (leave empty if none) > ')
-
+		job_specific = gather(self.ask_for_path)
 
 		## Specify additional panda options
 		panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
 
-		self.book.create_chain(
-			chain_name,
-			job_type,
-			input_file_path,
-			panda_options,
-			script_path=script_path,
-			use_root=use_root,
-			root_version=root_version,
-			output=output,
-			additional_files=additional_files,
-			athena_release=athena_release,
-			testarea_path=testarea_path,      
-			preexec=preexec,     
-			postexec=postexec,   
-			input_dataset_type=input_dataset_type,  
-			output_dataset_type=output_dataset_type,
-			transform_type=transform_type,
-			)
+		self.book.create_chain(chain_name, job_type, input_file_path, panda_options, job_specific)
 
 		self.save_book()
 
@@ -241,7 +177,17 @@ class CommandLine(Cmd):
 		                 - the individual submissions inside a job
 		"""
 
-		self.book.location.ls(arg)
+		locator = ''
+		option  = ''
+
+		arguments = arg.split(' ')
+
+		if len(arguments) > 0:
+			locator = arguments[0]
+		if len(arguments) > 1:
+			option  = arguments[1]
+
+		self.book.location.ls(locator, option)
 
 
 	## -------------------------------------------------------
@@ -250,13 +196,24 @@ class CommandLine(Cmd):
 		autocomplete for ls
 		"""
 
+		## Get argument position
+		try:
+			position = line.split(' ').index(text)
+		except ValueError:
+			position = -1
+
+		if position == 1:
+			arguments = definitions.kbook_status_list + definitions.special_indices
+
+		if position == 2:
+			arguments = ['hidden']
+
 		if not text:
-			completions = definitions.kbook_status_list + definitions.special_indices
+			completions = arguments
 		else:
-			completions = [item for item in definitions.kbook_status_list + definitions.special_indices if item.startswith(text)]
-
+			completions = [item for item in arguments if item.startswith(text)]
+	
 		return completions
-
 
 
 	## -------------------------------------------------------
