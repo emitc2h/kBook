@@ -110,10 +110,9 @@ class Submission(Navigable):
 
 		log.info('Submitting ...')
 		log.info('-'*40)
-		log.info(command)
 
-		pout = self.parent.shell_command('cd {0}'.format(self.path))
-		pout = self.parent.shell_command(command)
+		self.parent.shell_command('cd {0}'.format(self.path), silent=True)
+		pout = self.parent.shell_command(command, silent=True)
 
 		already_done = False
 

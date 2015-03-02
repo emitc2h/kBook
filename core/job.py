@@ -190,12 +190,12 @@ class Job(Versioned):
 		self.poll.register(self.shell.stdout.fileno(), select.POLLIN)
 
 		## Setup ATLAS
-		self.shell_command('export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase')
-		self.shell_command('source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh')
-		self.shell_command('localSetupPandaClient --noAthenaCheck')
+		self.shell_command('export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase', silent=True)
+		self.shell_command('source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh', silent=True)
+		self.shell_command('localSetupPandaClient --noAthenaCheck', silent=True)
 
 		## Check that grid proxy is in order
-		pout_voms = self.shell_command('voms-proxy-info')
+		pout_voms = self.shell_command('voms-proxy-info', silent=True)
  
 		if pout_voms.find('subject') == -1:
 			log.error('    Grid proxy is not set, setup now:')
@@ -217,7 +217,7 @@ class Job(Versioned):
 
 
    	## ---------------------------------------------------------
-	def shell_command(self, command):
+	def shell_command(self, command, silent=False):
 		"""
 		Send a command to the shell
 		"""
@@ -233,13 +233,15 @@ class Job(Versioned):
 		while True:
 			if self.poll.poll(500):
 				result = self.shell.stdout.readline()
-				## Print and record output
-				output += result
 
 				if 'ergzuidengrutelbitz' in result:
+					output += result.rstrip('ergzuidengrutelbitz\n')
 					break
 
-				print result,
+				## Print and record output
+				output += result
+				if not silent:
+					print 'kBook : ', result,
 
 		return output
 
