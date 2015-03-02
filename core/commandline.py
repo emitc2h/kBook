@@ -7,8 +7,6 @@
 
 from cmd import Cmd
 import readline, os, sys, pickle, glob, shutil, stat, getpass, time
-from pandatools import PsubUtils, Client
-from subprocess import Popen, PIPE
 import logging as log
 from book import Book
 import definitions
@@ -31,26 +29,74 @@ class CommandLine(Cmd):
 		Constructor
 		"""
 
+		## Greetings
 		log.info('='*40)
 		log.info('Welcome to kBook 2.0.0!')
 		log.info('-'*40)
 
+		## Initialize command line
 		Cmd.__init__(self)
 		self.prompt = 'kBook > '
+
+		## Make sure .book exists
 		try:
-			book_file = open('.book/book.kbk')
-			self.book = pickle.load(book_file)
-			book_file.close()
-		except IOError:
-			log.info('Creating book...')
+			os.mkdir('.book')
+		except OSError:
+			pass
+
+		## Look for unclosed sessions
+		self.session_start = time.time()
+
+		potential_books = os.listdir('.book')
+		main_book_present     = False
+		unclosed_book_present = False
+		unclosed_book         = ''
+
+		for pb in potential_books:
+			if pb == 'book.kbk': main_book_present = True
+			if 'book.kbk.' in pb:
+				unclosed_book_present = True
+				unclosed_book = pb
+
+		if unclosed_book_present:
+			## Deal with unclosed book
+			log.warning('Unclosed kBook session detected:')
+			answer = raw_input('kBook : Attempt to recover? (y/n)')
+			if answer == 'y':
+				try:
+					book_file = open(os.path.join('.book', unclosed_book))
+					self.book = pickle.load(book_file)
+					book_file.close()
+				except EOFError:
+					if main_book_present:
+						log.error('kBook session unrecoverable, loading last correctly saved session.')
+						book_file = open(os.path.join('.book', 'book.kbk'))
+						self.book = pickle.load(book_file)
+						book_file.close()
+					else:
+						log.error('kBook session unrecoverable, creating new book ...')
+						self.book = Book('book', preferences)
+			else:
+				log.info('Creating book...')
+				self.book = Book('book', preferences)
+
+
+		elif main_book_present:
+			## Make a copy of book.kbk
+			shutil.copyfile('.book/book.kbk', '.book/book.kbk.{0}'.format(self.session_start))
 			try:
-				os.mkdir('.book')
-			except OSError:
-				pass
+				book_file = open('.book/book.kbk.{0}'.format(self.session_start))
+				self.book = pickle.load(book_file)
+				book_file.close()
+			except EOFError:
+				log.error('kBook session unrecoverable, creating new one.')
+				self.book = Book('book', preferences)
 
-			self.book   = Book('book', preferences)
+		else:
+			log.info('Creating book...')
+			self.book = Book('book', preferences)
 
-		self.proxy_is_expired = self.book.prepare(preferences)
+		self.book.prepare(preferences)
 		self.book.rebuild_hierarchy()
 
 
@@ -59,10 +105,6 @@ class CommandLine(Cmd):
 		"""
 		runs the user interface
 		"""
-
-		if self.proxy_is_expired:
-			log.info('Proxy is expired, please generate a new one:')
-			PsubUtils.checkGridProxy('',True,False)
 
 		log.info('Begin interactive session (type \'help\' for assistance)')
 		self.cmdloop()
@@ -843,6 +885,11 @@ class CommandLine(Cmd):
 
 		self.save_book()
 
+		os.chdir(self.book.path)
+		shutil.copyfile('book.kbk.{0}'.format(self.session_start), 'book.kbk')
+		for f in glob.glob('book.kbk.*'):
+			os.remove(f)
+
 		log.info('Goodbye')
 		sys.exit(1)
 
@@ -912,7 +959,7 @@ class CommandLine(Cmd):
 
 		self.book.save_preferences()
 		os.chdir(self.book.path)
-		book_file = open('book.kbk', 'w')
+		book_file = open('book.kbk.{0}'.format(self.session_start), 'w')
 		pickle.dump(self.book, book_file, pickle.HIGHEST_PROTOCOL)
 		book_file.close()
 

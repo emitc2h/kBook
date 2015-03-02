@@ -8,6 +8,7 @@
 
 import os, shutil, time, subprocess, select
 import logging as log
+from pandatools import PsubUtils
 from submission import Submission
 from versioned import Versioned
 
@@ -53,6 +54,30 @@ class Job(Versioned):
 
 		self.shell = None
 		self.poll  = None
+
+
+	## -------------------------------------------------------
+	def __getstate__(self):
+		"""
+		Exclude shell and poll from being pickled
+		"""
+
+		d = dict(self.__dict__)
+		del d['shell']
+		del d['poll']
+		return d
+
+
+	## -------------------------------------------------------
+	def __setstate__(self, d):
+		"""
+		Exclude shell and poll from being pickled
+		"""
+
+		self.shell = None
+		self.poll  = None
+
+		self.__dict__.update(d)
 
 
 	## -------------------------------------------------------
@@ -155,7 +180,70 @@ class Job(Versioned):
 		Start the job's shell
 		"""
 
-		
+		if self.shell is not None: return
+
+		## Start the shell
+		self.shell = subprocess.Popen(['bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+		## Associate poll to shell
+		self.poll = select.poll()
+		self.poll.register(self.shell.stdout.fileno(), select.POLLIN)
+
+		## Setup ATLAS
+		self.shell_command('export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase')
+		self.shell_command('source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh')
+		self.shell_command('localSetupPandaClient --noAthenaCheck')
+
+		## Check that grid proxy is in order
+		pout_voms = self.shell_command('voms-proxy-info')
+ 
+		if pout_voms.find('subject') == -1:
+			log.error('    Grid proxy is not set, setup now:')
+			PsubUtils.checkGridProxy('',True,False)
+ 
+		pout_voms_lines = pout_voms.rstrip('\n').split('\n')
+
+		proxy_is_expired = False
+
+		for line in pout_voms_lines:
+			if 'timeleft' in line:
+				if '00:00:00' in line: proxy_is_expired = True
+			log.debug('    ' + line)
+		log.debug('')
+
+		if proxy_is_expired: PsubUtils.checkGridProxy('',True,False)
+
+		return
+
+
+   	## ---------------------------------------------------------
+	def shell_command(self, command):
+		"""
+		Send a command to the shell
+		"""
+
+		if self.shell is None: self.start_shell()
+
+		output = ''
+		## Send command
+		self.shell.stdin.write(command + '; echo ergzuidengrutelbitz\n')
+		self.shell.stdin.flush()
+		## Wait for output
+		print 'kBook : executing \'{0}\''.format(command)
+		while True:
+			if self.poll.poll(500):
+				result = self.shell.stdout.readline()
+				## Print and record output
+				output += result
+
+				if 'ergzuidengrutelbitz' in result:
+					break
+
+				print result,
+
+		return output
+
+
 
 
 
