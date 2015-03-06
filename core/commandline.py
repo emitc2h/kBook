@@ -61,7 +61,7 @@ class CommandLine(Cmd):
 		if unclosed_book_present:
 			## Deal with unclosed book
 			log.warning('Unclosed kBook session detected:')
-			answer = raw_input('kBook : Attempt to recover? (y/n)')
+			answer = raw_input('kBook : Attempt to recover? (y/n) > ')
 			if answer == 'y':
 				try:
 					book_file = open(os.path.join('.book', unclosed_book))
@@ -77,8 +77,14 @@ class CommandLine(Cmd):
 						log.error('kBook session unrecoverable, creating new book ...')
 						self.book = Book('book', preferences)
 			else:
-				log.info('Creating book...')
-				self.book = Book('book', preferences)
+				if main_book_present:
+					log.error('kBook session unrecoverable, loading last correctly saved session.')
+					book_file = open(os.path.join('.book', 'book.kbk'))
+					self.book = pickle.load(book_file)
+					book_file.close()
+				else:
+					log.error('kBook session unrecoverable, creating new book ...')
+					self.book = Book('book', preferences)
 
 
 		elif main_book_present:
@@ -189,7 +195,7 @@ class CommandLine(Cmd):
 		job_specific = gather(self.ask_for_path)
 
 		## Specify additional panda options
-		panda_options = raw_input('kBook : create : prun : any additional panda options? > ')
+		panda_options = raw_input('kBook : create : any additional panda options? > ')
 
 		self.book.create_chain(chain_name, job_type, input_file_path, panda_options, job_specific)
 

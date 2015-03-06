@@ -38,7 +38,11 @@ class Job(Versioned):
 			'create_directory',
 			'construct_command',
 			'generate_output_dataset_names',
-			'shell'
+			'shell',
+			'job_specific',
+			'shell_command',
+			'start_shell',
+			'initialize'
 		]
 
 		self.level = 2
@@ -180,7 +184,9 @@ class Job(Versioned):
 		Start the job's shell
 		"""
 
-		if self.shell is not None: return
+		if self.shell is not None: return False
+
+		log.info('Starting shell...')
 
 		## Start the shell
 		self.shell = subprocess.Popen(['bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -208,12 +214,10 @@ class Job(Versioned):
 		for line in pout_voms_lines:
 			if 'timeleft' in line:
 				if '00:00:00' in line: proxy_is_expired = True
-			log.debug('    ' + line)
-		log.debug('')
 
 		if proxy_is_expired: PsubUtils.checkGridProxy('',True,False)
 
-		return
+		return True
 
 
    	## ---------------------------------------------------------

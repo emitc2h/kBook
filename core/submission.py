@@ -39,6 +39,7 @@ class Submission(Navigable):
 		self.status               = 0
 		self.retry_count          = 0
 		self.retry_count_max      = 10
+		self.url                  = ''
 		self.private += [
 			'compile_panda_options',
 			'parse_panda_status'
@@ -91,6 +92,8 @@ class Submission(Navigable):
 		submits the one submission
 		"""
 
+		self.parent.start_shell()
+
 		log.info('='*40)
 		log.info('Checking submission status ...')
 		self.update()
@@ -118,6 +121,7 @@ class Submission(Navigable):
 
 		pout_lines = pout.split('\n')
 		for line in pout_lines:
+			log.info(line)
 			if 'jediTaskID' in line:
 				new_panda_job_id = -1
 				line_elements = line.split(' ')
@@ -128,17 +132,18 @@ class Submission(Navigable):
 					if self.jedi_task_dict is None:
 						self.jedi_task_dict = {}
 					self.jedi_task_dict['jediTaskID'] = new_panda_job_id
+					self.url = 'http://bigpanda.cern.ch/jobs/?display_limit=100&jeditaskid={0}'.format(new_panda_job_id)
 				else:
 					self.past_jedi_task_dicts.append(self.jedi_task_dict)
 					self.jedi_task_dict = {}
 					self.jedi_task_dict['jediTaskID'] = new_panda_job_id
+					self.url = 'http://bigpanda.cern.ch/jobs/?display_limit=100&jeditaskid={0}'.format(new_panda_job_id)
 
+		log.info('Monitoring URL: {0}'.format(self.url))
 
 		if 'Done. No jobs to be submitted' in pout:
 			already_done = True
 			self.status = 4
-
-		log.info(pout)
 
 		if ('succeeded. new' in pout) and (not already_done):
 			self.status = 3
@@ -197,6 +202,7 @@ class Submission(Navigable):
 		status, new_jedi_task_dict = Client.getJediTaskDetails(self.jedi_task_dict, True, True)
 		if not new_jedi_task_dict is None:
 			self.jedi_task_dict = new_jedi_task_dict
+			self.url = 'http://bigpanda.cern.ch/jobs/?display_limit=100&jeditaskid={0}'.format(self.jedi_task_dict['jediTaskID'])
 
 		try:
 			statistics = self.jedi_task_dict['statistics']
