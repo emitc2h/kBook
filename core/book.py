@@ -257,7 +257,7 @@ class Book(Navigable):
 
 
 		new_chain = Chain(name, self, panda_options, chain_path, input_file_path, job_specific)
-		self.append(new_chain)
+		self.insert(0, new_chain)
 
 
 

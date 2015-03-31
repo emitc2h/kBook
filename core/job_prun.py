@@ -92,7 +92,7 @@ class JobPrun(Job):
 		"""
 
 		Job.create_directory(self)
-		shutil.copyfile(self.script_path, './{0}'.format(self.script_name))
+		shutil.copyfile(self.script_path, os.path.join('.', self.script_name))
 
 		if self.additional_files:
 

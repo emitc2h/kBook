@@ -16,7 +16,8 @@ special_indices = [
 job_types = [
 	'prun',
 	'taskid',
-	'pathena-trf'
+	'pathena-trf',
+	'eventloop'
 ]
 
 ## =======================================================
@@ -29,6 +30,30 @@ kbook_status_list = [
 	'error',
 	'closed'
 ]
+
+## =======================================================
+eventloop_prun_options = {
+	'--destSE'           : ('EL::Job::optGridDestSE', 'String'),
+	'--site'             : ('EL::Job::optGridSite', 'String'),
+	'--cloud'            : ('EL::Job::optGridCloud', 'String'),
+	'--rootVer'          : ('EL::Job::optRootVer', 'String'),
+	'--cmtConfig'        : ('EL::Job::optCmtConfig', 'String'),
+	'--excludedSite'     : ('EL::Job::optGridExcludedSite', 'String'),
+	'--nGBPerJob'        : ('EL::Job::optGridNGBPerJob', 'String'),
+	'--memory'           : ('EL::Job::optGridMemory', 'String'),
+	'--maxCpuCount '     : ('EL::Job::optGridMaxCpuCount', 'String'),
+	'--nFiles'           : ('EL::Job::optGridNFiles', 'Double'),
+	'--nFilesPerJob'     : ('EL::Job::optGridNFilesPerJob', 'Double'),
+	'--nJobs'            : ('EL::Job::optGridNJobs', 'Double'),
+	'--maxFileSize'      : ('EL::Job::optGridMaxFileSize', 'String'),
+	'--maxNFilesPerJob'  : ('EL::Job::optGridMaxNFilesPerJob', 'String'),
+	'--tmpDir'           : ('EL::Job::optTmpDir', 'String'),
+	'--useChirpServer'   : ('EL::Job::optGridUseChirpServer', 'String'),
+	'--express'          : ('EL::Job::optGridExpress', 'String'),
+	'--noSubmit'         : ('EL::Job::optGridNoSubmit', 'String'),
+	'--disableAutoRetry' : ('EL::Job::optGridDisableAutoRetry', 'String'),
+	'--mergeOutput'      : ('EL::Job::optGridMergeOutput', 'String'),
+}
 
 ## =======================================================
 kbook_status = [

@@ -33,6 +33,7 @@ class Job(Versioned):
 		self.input_file_path  = input_file_path
 		self.job_specific     = job_specific
 		self.command          = ''
+		
 		self.private += [
 			'read_input_file',
 			'create_directory',

@@ -14,8 +14,23 @@ import definitions
 
 ## =======================================================
 ## Define the two types of completers
-def path_completer(text, state): return (glob.glob(text+'*')+[None])[state]
+def path_completer(text, state):
+	complete_candidates = glob.glob(text+'*')
+	complete_candidates_dir = []
+	for candidate in complete_candidates:
+		if os.path.isdir(candidate): complete_candidates_dir.append('{0}{1}'.format(candidate, os.path.sep))
+		else: complete_candidates_dir.append(candidate)
+	return (complete_candidates_dir+[None])[state]
+
+def panda_completer(text, state):
+	if not text:
+		completions = definitions.eventloop_prun_options.keys()
+	else:
+		completions = [item for item in definitions.eventloop_prun_options.keys() if item.startswith(text)]
+	return completions
+
 path_delimiters     = ' \t\n;'
+
 readline.parse_and_bind('tab: complete')
 
 ## =======================================================
@@ -162,7 +177,7 @@ class CommandLine(Cmd):
 	## -------------------------------------------------------
 	def do_create(self, arg):
 		"""
-		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'pathena-algo\', \'pathena-trf\', \'taskid\'
+		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'taskid\'
 		"""
 
 		## Interpret arguments
@@ -178,8 +193,8 @@ class CommandLine(Cmd):
 			log.error('Please provide a chain name that is alphanumeric (example: \'mychain456\').')
 			return
 
-		if not (job_type=='prun' or job_type=='pathena-algo' or job_type=='pathena-trf' or job_type=='taskid'):
-			log.error('Please provide of the the following chain types: \'prun\', \'pathena-algo\', \'pathena-trf\' or \'taskid\'.')
+		if not (job_type=='prun' or job_type=='eventloop' or job_type=='pathena-trf' or job_type=='taskid'):
+			log.error('Please provide of the the following chain types: \'prun\', \'eventloop\', \'pathena-trf\' or \'taskid\'.')
 			return
 
 		if job_type == 'taskid':
@@ -192,11 +207,12 @@ class CommandLine(Cmd):
 		if job_type == 'prun':        from job_prun        import gather
 		if job_type == 'pathena-trf': from job_pathena_trf import gather
 		if job_type == 'taskid':      from job_taskid      import gather
+		if job_type == 'eventloop':   from job_eventloop   import gather
 
 		job_specific = gather(self.ask_for_path)
 
 		## Specify additional panda options
-		panda_options = raw_input('kBook : create : any additional panda options? > ')
+		panda_options = ask_for_panda_options()
 
 		self.book.create_chain(chain_name, job_type, input_file_path, panda_options, job_specific)
 
@@ -935,6 +951,27 @@ class CommandLine(Cmd):
 		os.chdir(cwd)
 
 		return absolute_path
+
+
+	## -------------------------------------------------------
+	def ask_for_panda_options(self):
+		"""
+		ask user to provide a path, with path autocomplete capabilities
+		"""
+
+		## Retrieve the default completer and delimiters
+		default_completer  = readline.get_completer()
+
+		## Switch to path completer
+		readline.set_completer(panda_completer)
+
+
+		panda_options = raw_input('kBook : create : any additional panda options? > ')
+
+		## Switch back to default completer
+		readline.set_completer(default_completer)
+
+		return panda_options
 
 
 	## -------------------------------------------------------
