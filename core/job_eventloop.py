@@ -8,7 +8,19 @@
 
 import os, shutil, glob
 from job import Job
+from submission import Submission
 import definitions
+
+## -------------------------------------------------------
+def copy_symlink(src, dst):
+	"""
+	Copy a symlink
+	"""
+	if os.path.islink(src):
+		linkto = os.readlink(src)
+		os.symlink(linkto, dst)
+	else:
+		shutil.copy(src,dst)
 
 ## -------------------------------------------------------
 def gather(ask_for_path):
@@ -67,7 +79,8 @@ class JobEventLoop(Job):
 
 		self.private += [
 			'setup_rootcore',
-			'generate_grid_scripts'
+			'generate_grid_scripts',
+			'compile_panda_options'
 		]
 
 		self.type = 'eventloop'
@@ -76,6 +89,7 @@ class JobEventLoop(Job):
 		self.ls_pattern    = ('{0:<5} : {1:<12} : {2:<20} : {3:<22} : {4:<8} : {5:<5}', 'index', 'type', 'script_name', 'status', 'completion', 'version')
 
 		self.initialize()
+		self.generate_grid_scripts()
 
 
 	## --------------------------------------------------------
@@ -93,7 +107,9 @@ class JobEventLoop(Job):
 		for d in rootcore_toplevel_dirs:
 			if d.lower() == 'run': continue
 			d_fullpath = os.path.join(self.rootcore_path, d)
-			if os.path.isdir(d_fullpath):
+			if os.path.islink(d_fullpath):
+				continue
+			elif os.path.isdir(d_fullpath):
 				shutil.copytree(d_fullpath, os.path.join(self.path, d), symlinks=True)
 			else:
 				shutil.copy(d_fullpath, os.path.join(self.path, d))
@@ -104,6 +120,20 @@ class JobEventLoop(Job):
 		## Copy the prototype script in the run directory
 		shutil.copyfile(self.script_path, os.path.join(self.run_directory, self.script_name))
 
+		## Create the .RootCoreBin symlink
+		os.symlink(os.path.join(self.path, 'RootCoreBin'), os.path.join(self.path, '.RootCoreBin'))
+
+
+	## -------------------------------------------------------
+	def read_input_file(self):
+		"""
+		opens the input file and create the submissions
+		"""
+
+		f = open(self.input_file_path)
+		lines = f.readlines()
+		for i, line in enumerate(lines):
+			self.append(Submission('submission{0}'.format(str(i).zfill(4)), self, line.rstrip('\n'), self.command, self.run_directory))
 
 
 	## --------------------------------------------------------
@@ -112,10 +142,7 @@ class JobEventLoop(Job):
 		constructs a prun command
 		"""
 
-		self.generate_grid_scripts()
-
-		self.command = 'root -l -b -q \'$ROOTCOREDIR/scripts/load_packages.C\' \'{0}("{1}")\''
-
+		self.command = 'root -l -b -q \'$ROOTCOREDIR/scripts/load_packages.C\' \'{submission}.cxx("{submission}")\''
 
 
 	## -------------------------------------------------------
@@ -177,14 +204,17 @@ class JobEventLoop(Job):
 		f_prototype = open('prototype.cxx', 'w')
 		f_script    = open(self.script_path, 'r')
 
-		print 'Prototype script:'
-		print '-'*40
-
 		sample_handler_name = ''
 		driver_name = ''
 		function_name = ''
 
+		## Construct prototype script
 		for line in f_script.readlines():
+
+			## Replace existing curly braces to preserve them
+			if '{' in line: line = line.replace('{', 'curly_brace_left')
+			if '}' in line: line = line.replace('}', 'curly_brace_right')
+
 			## strip away unimportant lines
 			if line.lstrip(' \t').startswith('//'): continue
 			if not line.strip(): continue
@@ -198,7 +228,7 @@ class JobEventLoop(Job):
 				line = line.replace(function_name, '{submission}')
 
 			## Remove lines about local path
-			if 'gSystem->ExpandPathName' in line or line.count(os.path.sep) > 0: continue
+			if 'gSystem->ExpandPathName' in line: continue
 			if 'SH::DiskListLocal' in line: continue
 			if 'SH::scanDir' in line: continue
 
@@ -208,14 +238,17 @@ class JobEventLoop(Job):
 				line_items = line.split()
 				driver_name = line_items[line_items.index('EL::PrunDriver') + 1]
 				driver_name = driver_name[:driver_name.find(';')]
+				f_prototype.write(line)
 
 				## Write panda options
 				for option in self.compile_panda_options():
 					option_elements = option.split('=')
+
 					key = option_elements[0]
 					value = option_elements[-1]
-					print key, value
-					
+
+					if key == value: value = 1
+
 					try:
 						option_enum = definitions.eventloop_prun_options[key][0]
 						value_type = definitions.eventloop_prun_options[key][1]
@@ -224,14 +257,29 @@ class JobEventLoop(Job):
 
 					if value_type == 'String':
 						value = '"{0}"'.format(value)
-					print '  {0}.options()->Set{1}({2}, {3});\n'.format(driver_name, value_type, option_enum, value),
+					f_prototype.write('  {0}.options()->set{1}({2}, {3});\n'.format(driver_name, value_type, option_enum, value))
+
+				## Specify output dataset name
+				f_prototype.write('  {0}.options()->setString("nc_outputSampleName", '.format(driver_name) + '"{output}");\n')
+
+				continue
 
 			## Use submitOnly instead of submit for the driver
 			if '{0}.submit('.format(driver_name) in line:
-				line = line.replace('{0}.submit'.format(driver_name), '{0}.submitOnly'.format(driver_name)) 
+				line = line.replace('{0}.submit'.format(driver_name), '{0}.submitOnly'.format(driver_name))
+				f_prototype.write(line)
+
+				## Arrange to print jediTaskID
+				f_prototype.write('\n  SH::SampleHandler sh_end;\n')
+				f_prototype.write('  sh_end.load("{submission}/input");\n')
+				f_prototype.write('  for (int i = 0; i < sh_end.size(); ++i)\n')
+				f_prototype.write('  curly_brace_left\n')
+		  		f_prototype.write('    std::cout << sh_end[i]->name() << " : jediTaskID=" << (int)sh_end[i]->getMetaDouble("nc_jediTaskID") << std::endl;\n')
+				f_prototype.write('  curly_brace_right\n')
+
+				continue
 
 			f_prototype.write(line)
-			print line,
 
 			## Add new grid sample input line after the samplehandler declaration
 			if 'SH::SampleHandler' in line:
@@ -239,10 +287,21 @@ class JobEventLoop(Job):
 				sample_handler_name = line_items[line_items.index('SH::SampleHandler') + 1]
 				sample_handler_name = sample_handler_name[:sample_handler_name.find(';')]
 				f_prototype.write('  SH::addGrid({0}, '.format(sample_handler_name) + '"{input}");\n')
-				print '  SH::addGrid({0}, '.format(sample_handler_name) + '"{input}");\n',
+
+				continue
 
 		f_prototype.close()
 		f_script.close()
+
+		prototype = open('prototype.cxx', 'r').read()
+
+		for submission in self:
+			submission_script = open('{0}.cxx'.format(submission.name), 'w')
+			submission_script_content = prototype.format(submission=submission.name, input=submission.input_dataset, output=submission.output_dataset)
+			submission_script_content = submission_script_content.replace('curly_brace_left', '{')
+			submission_script_content = submission_script_content.replace('curly_brace_right', '}')
+			submission_script.write(submission_script_content)
+			submission_script.close()
 
 		os.chdir(cwd)
 

@@ -46,13 +46,13 @@ eventloop_prun_options = {
 	'--nFilesPerJob'     : ('EL::Job::optGridNFilesPerJob', 'Double'),
 	'--nJobs'            : ('EL::Job::optGridNJobs', 'Double'),
 	'--maxFileSize'      : ('EL::Job::optGridMaxFileSize', 'String'),
-	'--maxNFilesPerJob'  : ('EL::Job::optGridMaxNFilesPerJob', 'String'),
+	'--maxNFilesPerJob'  : ('EL::Job::optGridMaxNFilesPerJob', 'Double'),
 	'--tmpDir'           : ('EL::Job::optTmpDir', 'String'),
-	'--useChirpServer'   : ('EL::Job::optGridUseChirpServer', 'String'),
-	'--express'          : ('EL::Job::optGridExpress', 'String'),
-	'--noSubmit'         : ('EL::Job::optGridNoSubmit', 'String'),
-	'--disableAutoRetry' : ('EL::Job::optGridDisableAutoRetry', 'String'),
-	'--mergeOutput'      : ('EL::Job::optGridMergeOutput', 'String'),
+	'--useChirpServer'   : ('EL::Job::optGridUseChirpServer', 'Double'),
+	'--express'          : ('EL::Job::optGridExpress', 'Double'),
+	'--noSubmit'         : ('EL::Job::optGridNoSubmit', 'Double'),
+	'--disableAutoRetry' : ('EL::Job::optGridDisableAutoRetry', 'Double'),
+	'--mergeOutput'      : ('EL::Job::optGridMergeOutput', 'Double'),
 }
 
 ## =======================================================

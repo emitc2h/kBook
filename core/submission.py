@@ -106,10 +106,13 @@ class Submission(Navigable):
 			log.info('    already submitted, finished.')
 			return
 
-		os.chdir(self.path)
+		
 
 		## Finish constructing the command
-		command = '{0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.compile_panda_options())
+		if self.parent.type == 'eventloop':
+			command = self.command.format(submission=self.name)
+		else:
+			command = '{0} {1}'.format(self.command.format(input=self.input_dataset, output=self.output_dataset), self.compile_panda_options())
 
 		log.info('Submitting ...')
 		log.info('-'*40)
