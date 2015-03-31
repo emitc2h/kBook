@@ -14,22 +14,28 @@ import definitions
 
 ## =======================================================
 ## Define the two types of completers
+
+# - - - - - - - - - - - - - - - - - - - - - - - -
 def path_completer(text, state):
 	complete_candidates = glob.glob(text+'*')
 	complete_candidates_dir = []
 	for candidate in complete_candidates:
 		if os.path.isdir(candidate): complete_candidates_dir.append('{0}{1}'.format(candidate, os.path.sep))
 		else: complete_candidates_dir.append(candidate)
+
 	return (complete_candidates_dir+[None])[state]
 
+# - - - - - - - - - - - - - - - - - - - - - - - -
 def panda_completer(text, state):
 	if not text:
 		completions = definitions.eventloop_prun_options.keys()
 	else:
 		completions = [item for item in definitions.eventloop_prun_options.keys() if item.startswith(text)]
-	return completions
+
+	return (completions+[None])[state]
 
 path_delimiters     = ' \t\n;'
+panda_delimiters    = ' ='
 
 readline.parse_and_bind('tab: complete')
 
@@ -212,7 +218,7 @@ class CommandLine(Cmd):
 		job_specific = gather(self.ask_for_path)
 
 		## Specify additional panda options
-		panda_options = ask_for_panda_options()
+		panda_options = self.ask_for_panda_options()
 
 		self.book.create_chain(chain_name, job_type, input_file_path, panda_options, job_specific)
 
@@ -961,14 +967,17 @@ class CommandLine(Cmd):
 
 		## Retrieve the default completer and delimiters
 		default_completer  = readline.get_completer()
+		default_delimiters = readline.get_completer_delims()
 
 		## Switch to path completer
+		readline.set_completer_delims(panda_delimiters)
 		readline.set_completer(panda_completer)
 
 
 		panda_options = raw_input('kBook : create : any additional panda options? > ')
 
 		## Switch back to default completer
+		readline.set_completer_delims(default_delimiters)
 		readline.set_completer(default_completer)
 
 		return panda_options

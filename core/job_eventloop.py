@@ -8,6 +8,7 @@
 
 import os, shutil, glob
 from job import Job
+import definitions
 
 ## -------------------------------------------------------
 def gather(ask_for_path):
@@ -210,7 +211,20 @@ class JobEventLoop(Job):
 
 				## Write panda options
 				for option in self.compile_panda_options():
-					print option
+					option_elements = option.split('=')
+					key = option_elements[0]
+					value = option_elements[-1]
+					print key, value
+					
+					try:
+						option_enum = definitions.eventloop_prun_options[key][0]
+						value_type = definitions.eventloop_prun_options[key][1]
+					except KeyError:
+						continue
+
+					if value_type == 'String':
+						value = '"{0}"'.format(value)
+					print '  {0}.options()->Set{1}({2}, {3});\n'.format(driver_name, value_type, option_enum, value),
 
 			## Use submitOnly instead of submit for the driver
 			if '{0}.submit('.format(driver_name) in line:
