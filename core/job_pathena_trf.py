@@ -162,7 +162,18 @@ class JobPathenaTrf(Job):
 					shutil.copytree(os.path.join(self.testarea_path, d), os.path.join(self.path, d), ignore=ignore_patterns_root)
 				else:
 					shutil.copytree(os.path.join(self.testarea_path, d), os.path.join(self.path, d), ignore=ignore_patterns)
-			
+
+
+	## -------------------------------------------------------
+	def read_input_file(self):
+		"""
+		Add WorkArea/run to submission directory
+		"""
+
+		Job.read_input_file(self)
+
+		for submission in self:
+			submission.path = os.path.join(submission.path, 'WorkArea', 'run')
 
 
 	## --------------------------------------------------------
@@ -224,7 +235,7 @@ class JobPathenaTrf(Job):
 
 
 	## ---------------------------------------------------------
-	def start_shell(self):
+	def start_shell(self, compile=True):
 		"""
 		Adding setup athena on top of shell setup
 		"""
@@ -237,10 +248,13 @@ class JobPathenaTrf(Job):
 			## Setup Athena
 			self.shell_command('asetup {0},here'.format(self.athena_release))
 
-			## Compile? Try without for now
+			## Compile?
+			if compile:
+				self.shell_command('cd WorkArea/cmt')
+				self.shell_command('cmt config; source setup.sh; cmt bro gmake')
 
 			## Go to run directory
-			self.shell_command('cd WorkArea/run')
+			self.shell_command('cd ../run')
 
 		
 

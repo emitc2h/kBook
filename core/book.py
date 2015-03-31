@@ -108,6 +108,28 @@ class Book(Navigable):
 
 
 		## - - - - - - - - - - - - - - - - - - - - - - - - 
+		## Check that there is a grid proxy
+		log.debug('Checking grid proxy ...')
+		p = Popen(args = 'voms-proxy-info', stdout=PIPE, stderr=PIPE, shell = True)
+		p.wait()
+		pout_voms, perr_voms = p.communicate()
+ 
+		if pout_voms.find('subject') == -1:
+			log.error('    Grid proxy is not set, setup now:')
+			PsubUtils.checkGridProxy('',True,False)
+ 
+		pout_voms_lines = pout_voms.rstrip('\n').split('\n')
+
+		proxy_is_expired = False
+
+		for line in pout_voms_lines:
+			if 'timeleft' in line:
+				if '00:00:00' in line: proxy_is_expired = True
+			log.debug('    ' + line)
+		log.debug('')
+
+
+		## - - - - - - - - - - - - - - - - - - - - - - - - 
 		## Update book
 		if self.preferences.update_on_start:
 			log.debug('Updating everything ...')
@@ -121,6 +143,8 @@ class Book(Navigable):
 		self.preferences.print_all()
 
 		self.location = self
+
+		return proxy_is_expired
 
 
 	## --------------------------------------------------------

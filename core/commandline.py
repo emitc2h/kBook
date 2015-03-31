@@ -7,6 +7,7 @@
 
 from cmd import Cmd
 import readline, os, sys, pickle, glob, shutil, stat, getpass, time
+from subprocess import Popen, PIPE
 import logging as log
 from book import Book
 import definitions
@@ -102,7 +103,7 @@ class CommandLine(Cmd):
 			log.info('Creating book...')
 			self.book = Book('book', preferences)
 
-		self.book.prepare(preferences)
+		self.proxy_is_expired = self.book.prepare(preferences)
 		self.book.rebuild_hierarchy()
 
 
