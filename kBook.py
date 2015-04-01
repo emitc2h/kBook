@@ -64,10 +64,11 @@ else:
 		)
 
 
-the_commandline = CommandLine(preferences)
 if not args.commands:
+	the_commandline = CommandLine(preferences, test_unclosed_book=True)
 	the_commandline.run()
 else:
+	the_commandline = CommandLine(preferences, test_unclosed_book=False)
 	the_commandline.execute_and_exit(args.commands)
 
 

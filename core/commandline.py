@@ -46,7 +46,7 @@ class CommandLine(Cmd):
 	"""
 
 	## -------------------------------------------------------
-	def __init__(self, preferences):
+	def __init__(self, preferences, test_unclosed_book=True):
 		"""
 		Constructor
 		"""
@@ -83,7 +83,12 @@ class CommandLine(Cmd):
 		if unclosed_book_present:
 			## Deal with unclosed book
 			log.warning('Unclosed kBook session detected:')
-			answer = raw_input('kBook : Attempt to recover? (y/n) > ')
+
+			if test_unclosed_book:
+				answer = raw_input('kBook : Attempt to recover? (y/n) > ')
+			else:
+				answer = 'y'
+
 			if answer == 'y':
 				try:
 					book_file = open(os.path.join('.book', unclosed_book))
