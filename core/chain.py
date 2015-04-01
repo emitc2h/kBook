@@ -76,9 +76,8 @@ class Chain(Versioned):
 		self.append(new_job)
 
 
-
 	## ---------------------------------------------------------
-	def append_job(self, job_type, **kwargs):
+	def append_job(self, job_specific):
 		"""
 		Appends a new job to the chain, using the output files
 		of the previous job as the new input
@@ -95,25 +94,24 @@ class Chain(Versioned):
 
 		del self[:]
 
-		self.creation_time = time.time()
-		self.modified_time = time.time()
-		self.status        = 0
-		self.comment       = ''
-
 		for job in self.previous:
 			if job.hide < 0: continue
 			new_job = None
+			
+			path            = os.path.join(self.path, 'job0000_v0')
+			input_file_path = job.input_file_path
+			job_specific    = job.job_specific
+
 			if job.type == 'prun':
-				new_job = JobPrun(
-					job.script_path,
-					job.use_root,
-					job.root_version,
-					job.output,
-					job.additional_files,
-					job.name,
-					job.parent.get_latest(),
-					os.path.join(self.path, '{0}_v0'.format(job.name)),
-					job.input_file_path
-					)
+				new_job = JobPrun('job0000', self, path, input_file_path, job_specific)
+	
+			if job.type == 'taskid':
+				new_job = JobTaskID('job0000', self, path, input_file_path, job_specific)
+	
+			if job.type == 'pathena-trf':
+				new_job = JobPathenaTrf('job0000', self, path, input_file_path, job_specific)
+	
+			if job.type == 'eventloop':
+				new_job = JobEventLoop('job0000', self, path, input_file_path, job_specific)
 
 			self.append(new_job)
