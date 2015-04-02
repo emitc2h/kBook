@@ -49,14 +49,14 @@ class JobTaskID(Job):
 
 
 	## -------------------------------------------------------
-	def read_input_file(self):
+	def read_input_file(self, input_file_path):
 		"""
 		opens the input file and create the submissions
 		"""
 
-		f = open(self.input_file_path)
+		f = open(input_file_path)
 		lines = f.readlines()
-		i = 0
+		i = len(self)
 		for line in lines:
 			if 'jediTaskID' in line:
 				new_panda_task_id = -1
@@ -80,3 +80,7 @@ class JobTaskID(Job):
 				new_submission.command = new_jedi_task_dict['cliParams']
 				self.append(new_submission)
 				i += 1
+
+		return []
+
+

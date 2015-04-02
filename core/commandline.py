@@ -902,6 +902,29 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
+	def do_add(self, arg):
+		"""
+		add <index> : Adds new input datasets to an existing job. It will query for the path to a new input file.
+		"""
+
+		input_file_path = self.ask_for_path('Please provide the path to the input file containing the list of new inputs.')
+
+		navigables = self.book.location.navigate(arg)
+		for i, navigable in navigables:
+			if i < 0:
+				log.error('No entry with index {0}'.format(arg))
+				return
+
+			if not navigable.level == 2:
+				log.warning('{0} is not a job'.format(navigable.name))
+				continue
+
+			navigable.create_submissions(navigable.read_input_file(input_file_path))
+
+
+
+
+	## -------------------------------------------------------
 	def do_save(self, arg):
 		"""
 		save : save the book

@@ -124,16 +124,19 @@ class JobEventLoop(Job):
 		os.symlink(os.path.join(self.path, 'RootCoreBin'), os.path.join(self.path, '.RootCoreBin'))
 
 
+
 	## -------------------------------------------------------
-	def read_input_file(self):
+	def read_input_file(self, input_file_path):
 		"""
-		opens the input file and create the submissions
+		Add WorkArea/run to submission directory
 		"""
 
-		f = open(self.input_file_path)
-		lines = f.readlines()
-		for i, line in enumerate(lines):
-			self.append(Submission('submission{0}'.format(str(i).zfill(4)), self, line.rstrip('\n'), self.command, self.run_directory))
+		input_datasets = Job.read_input_file(self, input_file_path)
+
+		for submission in self:
+			submission.path = self.run_directory
+
+		return input_datasets
 
 
 	## --------------------------------------------------------

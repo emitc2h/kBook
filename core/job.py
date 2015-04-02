@@ -33,7 +33,7 @@ class Job(Versioned):
 		self.input_file_path  = input_file_path
 		self.job_specific     = job_specific
 		self.command          = ''
-		
+
 		self.private += [
 			'read_input_file',
 			'create_directory',
@@ -93,20 +93,50 @@ class Job(Versioned):
 
 		self.create_directory()
 		self.construct_command()
-		self.read_input_file()
+		self.create_submissions(self.read_input_file(self.input_file_path))
 		self.generate_output_dataset_names()
 
 
 	## -------------------------------------------------------
-	def read_input_file(self):
+	def read_input_file(self, input_file_path):
 		"""
 		opens the input file and create the submissions
 		"""
 
-		f = open(self.input_file_path)
+		f = open(input_file_path)
 		lines = f.readlines()
-		for i, line in enumerate(lines):
-			self.append(Submission('submission{0}'.format(str(i).zfill(4)), self, line.rstrip('\n'), self.command, self.path))
+		input_datasets = []
+
+		for line in lines:
+			line = line.strip(' \n\t')
+			input_datasets.append(line)
+
+		return input_datasets
+
+
+	## -------------------------------------------------------
+	def create_submissions(self, list_of_inputs):
+		"""
+		Create the submissions from a list of input datasets
+		"""
+
+		## Measure the number of submissions already in
+		nsubs_in = len(self)
+
+		## Compile list of current input datasets, to ensure no overlap
+		current_input_datasets = [submission.input_dataset for submission in self]
+
+		print 'Current input datasets'
+		print current_input_datasets
+
+		print 'new inputs'
+		print list_of_inputs
+
+		for i, input_dataset in enumerate(list_of_inputs):
+			if not input_dataset in current_input_datasets:
+				self.append(Submission('submission{0}'.format(str(i + nsubs_in).zfill(4)), self, input_dataset.strip(' \n\t'), self.command, self.path))
+			else:
+				log.warning('Dataset {0} is already part of {1}'.format(input_dataset, self.name))
 
 
 	## -------------------------------------------------------
