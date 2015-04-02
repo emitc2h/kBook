@@ -159,7 +159,7 @@ class CommandLine(Cmd):
 
 		log.info('kBook running in script mode ...')
 		self.onecmd(arg)
-		self.save_book()
+		self.do_exit('')
 
 
 	## -------------------------------------------------------
