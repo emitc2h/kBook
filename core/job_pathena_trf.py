@@ -165,17 +165,15 @@ class JobPathenaTrf(Job):
 
 
 	## -------------------------------------------------------
-	def read_input_file(self, input_file_path):
+	def create_submissions(self, list_of_inputs):
 		"""
-		Add WorkArea/run to submission directory
+		Alter the submission paths
 		"""
 
-		input_datasets = Job.read_input_file(self, input_file_path)
+		Job.create_submissions(self, list_of_inputs)
 
 		for submission in self:
 			submission.path = os.path.join(submission.path, 'WorkArea', 'run')
-
-		return input_datasets
 
 
 	## --------------------------------------------------------

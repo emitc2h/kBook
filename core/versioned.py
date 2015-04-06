@@ -63,6 +63,8 @@ class Versioned(Navigable):
 		new_version.path = self.path.replace('v{0}'.format(self.version), 'v{0}'.format(new_version.version))
 		os.mkdir(new_version.path)
 
+		self.update()
+
 		return new_version
 
 

@@ -124,19 +124,16 @@ class JobEventLoop(Job):
 		os.symlink(os.path.join(self.path, 'RootCoreBin'), os.path.join(self.path, '.RootCoreBin'))
 
 
-
 	## -------------------------------------------------------
-	def read_input_file(self, input_file_path):
+	def create_submissions(self, list_of_inputs):
 		"""
-		Add WorkArea/run to submission directory
+		Alter the submission paths
 		"""
 
-		input_datasets = Job.read_input_file(self, input_file_path)
+		Job.create_submissions(self, list_of_inputs)
 
 		for submission in self:
 			submission.path = self.run_directory
-
-		return input_datasets
 
 
 	## --------------------------------------------------------
@@ -307,6 +304,16 @@ class JobEventLoop(Job):
 			submission_script.close()
 
 		os.chdir(cwd)
+
+
+	## --------------------------------------------------------
+	def recreate(self):
+		"""
+		recreates the submissions
+		"""
+
+		Job.recreate(self)
+		self.generate_grid_scripts()
 
 
 	## ---------------------------------------------------------

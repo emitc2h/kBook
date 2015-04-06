@@ -126,12 +126,6 @@ class Job(Versioned):
 		## Compile list of current input datasets, to ensure no overlap
 		current_input_datasets = [submission.input_dataset for submission in self]
 
-		print 'Current input datasets'
-		print current_input_datasets
-
-		print 'new inputs'
-		print list_of_inputs
-
 		for i, input_dataset in enumerate(list_of_inputs):
 			if not input_dataset in current_input_datasets:
 				self.append(Submission('submission{0}'.format(str(i + nsubs_in).zfill(4)), self, input_dataset.strip(' \n\t'), self.command, self.path))
