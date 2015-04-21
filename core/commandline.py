@@ -188,7 +188,7 @@ class CommandLine(Cmd):
 	## -------------------------------------------------------
 	def do_create(self, arg):
 		"""
-		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'taskid\'
+		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'taskid\', etc.
 		"""
 
 		## Interpret arguments
@@ -204,8 +204,14 @@ class CommandLine(Cmd):
 			log.error('Please provide a chain name that is alphanumeric (example: \'mychain456\').')
 			return
 
-		if not (job_type=='prun' or job_type=='eventloop' or job_type=='pathena-trf' or job_type=='taskid'):
-			log.error('Please provide of the the following chain types: \'prun\', \'eventloop\', \'pathena-trf\' or \'taskid\'.')
+		if not (job_type in definitions.job_types):
+			job_types_string = ''
+			for i, jt in enumerate(definitions.job_types):
+				if i < len(definitions.job_types) -1:
+					job_types_string += ' \'{0}\','.format(jt)
+				else:
+					job_types_string += ' or \'{0}\'.'.format(jt)
+			log.error('Please provide of the the following chain types:{0}'.format(job_types_string))
 			return
 
 		if job_type == 'taskid':
@@ -215,12 +221,14 @@ class CommandLine(Cmd):
 
 
 		## job type specific input
-		if job_type == 'prun':        from job_prun        import gather
-		if job_type == 'pathena-trf': from job_pathena_trf import gather
-		if job_type == 'taskid':      from job_taskid      import gather
-		if job_type == 'eventloop':   from job_eventloop   import gather
+		# if job_type == 'prun':        from job_prun        import gather
+		# if job_type == 'pathena-trf': from job_pathena_trf import gather
+		# if job_type == 'taskid':      from job_taskid      import gather
+		# if job_type == 'eventloop':   from job_eventloop   import gather
 
-		job_specific = gather(self.ask_for_path)
+		__import__('job_{0}.gather'.format(job_type.replace('-', '_')), globals(), locals(), ['gather'], -1)
+
+		job_specific = _temp.gather(self.ask_for_path)
 
 		## Specify additional panda options
 		panda_options = self.ask_for_panda_options()
@@ -242,6 +250,11 @@ class CommandLine(Cmd):
 			completions = [item for item in definitions.job_types if item.startswith(text)]
 
 		return completions
+
+
+	## -------------------------------------------------------
+	def do_append(self, arg):
+
 
 
 	## -------------------------------------------------------
