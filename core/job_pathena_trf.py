@@ -182,7 +182,7 @@ class JobPathenaTrf(Job):
 		constructs a prun command
 		"""
 
-		self.command = 'pathena --trf="{transform_type}.py --input{input_type}File %IN --output{output_type}File %OUT.{output_type}.root --autoConfiguration everything --maxEvents -1 '.format(transform_type=self.transform_type, input_type=self.input_dataset_type, output_type=self.output_dataset_type)
+		self.command = 'pathena --trf="{transform_type}.py --input{input_type}File %IN --output{output_type}File %OUT.{output_type}.root --maxEvents -1 '.format(transform_type=self.transform_type, input_type=self.input_dataset_type, output_type=self.output_dataset_type)
 		
 		if self.transform_options:
 			self.command += '{0} '.format(self.transform_options) 
