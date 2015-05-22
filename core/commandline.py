@@ -221,13 +221,7 @@ class CommandLine(Cmd):
 
 
 		## job type specific input
-		# if job_type == 'prun':        from job_prun        import gather
-		# if job_type == 'pathena-trf': from job_pathena_trf import gather
-		# if job_type == 'taskid':      from job_taskid      import gather
-		# if job_type == 'eventloop':   from job_eventloop   import gather
-
-		__import__('job_{0}.gather'.format(job_type.replace('-', '_')), globals(), locals(), ['gather'], -1)
-
+		_temp = __import__('job_{0}'.format(job_type.replace('-', '_')), globals(), locals(), ['gather'], -1)
 		job_specific = _temp.gather(self.ask_for_path)
 
 		## Specify additional panda options
@@ -254,6 +248,9 @@ class CommandLine(Cmd):
 
 	## -------------------------------------------------------
 	def do_append(self, arg):
+		"""
+		append <index> <type> : Append a new job to an existing chain of index <index> and of type <type>. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'taskid\', etc.
+		"""
 
 
 
@@ -810,6 +807,8 @@ class CommandLine(Cmd):
 		delete <index> : deletes object of the given index
 		"""
 
+		indices_to_pop = []
+
 		navigables = self.book.location.navigate(arg)
 		for i, navigable in navigables:
 			if i < 0:
@@ -831,12 +830,13 @@ class CommandLine(Cmd):
 					shutil.rmtree(navigable.path)
 				except OSError:
 					pass
+
+			indices_to_pop.append(i)
 	
-			navigable.parent.remove(navigable)
+		for i in reversed(indices_to_pop):
+			navigable = self.book.location.pop(i)
 			del navigable
 	
-			self.save_book()
-
 
 	## -------------------------------------------------------
 	def complete_delete(self, text, line, begidx, endidx):

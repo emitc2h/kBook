@@ -93,7 +93,10 @@ class Job(Versioned):
 
 		self.create_directory()
 		self.construct_command()
-		self.create_submissions(self.read_input_file(self.input_file_path))
+		if isinstance(self.input_file_path, str):
+			self.create_submissions(self.read_input_file(self.input_file_path))
+		else:
+			self.create_submissions(self.job_specific['datasets'])
 		self.generate_output_dataset_names()
 
 
