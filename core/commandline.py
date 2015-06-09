@@ -227,7 +227,7 @@ class CommandLine(Cmd):
 		## Specify additional panda options
 		panda_options = self.ask_for_panda_options()
 
-		self.book.create_chain(chain_name, job_type, input_file_path, panda_options, job_specific)
+		self.book.create_chain(chain_name, input_file_path, panda_options, job_specific)
 
 		self.save_book()
 
@@ -252,6 +252,77 @@ class CommandLine(Cmd):
 		append <index> <type> : Append a new job to an existing chain of index <index> and of type <type>. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'taskid\', etc.
 		"""
 
+		## Interpret arguments, and argument testing
+		arguments = arg.split(' ')
+		if len(arguments) != 2:
+			log.error('Must provide 2 arguments: <index> <type>')
+			return
+
+		## Make sure the index is an integer
+		try:
+			index = int(arguments[0])
+		except ValueError:
+			log.error('First argument is not a valid index')
+			return
+
+		## Make sure the index is in the right range
+		if not (0 <= index < len(self.book)):
+			log.error('First argument is not a valid index')
+			return
+
+		## Collect job type argument
+		job_type = arguments[1]
+
+		## Make sure the job_type provided is of a known type
+		if not (job_type in definitions.job_types):
+			job_types_string = ''
+			for i, jt in enumerate(definitions.job_types):
+				if i < len(definitions.job_types) -1:
+					job_types_string += ' \'{0}\','.format(jt)
+				else:
+					job_types_string += ' or \'{0}\'.'.format(jt)
+			log.error('Please provide of the the following chain types:{0}'.format(job_types_string))
+			return
+
+		## It doesn't make sense to chain taskids
+		if job_type == 'taskid' or self.book[index][-1].type == 'taskid':
+			log.error('Cannot chain jobs of type \'taskid\'')
+			return
+
+		## job type specific input
+		_temp = __import__('job_{0}'.format(job_type.replace('-', '_')), globals(), locals(), ['gather'], -1)
+		job_specific = _temp.gather(self.ask_for_path)
+
+		## Additional panda options
+		panda_options = self.ask_for_panda_options()
+
+		## Actually append to the chain
+		self.book.append_to_chain(self.book[index], panda_options, job_specific)
+
+		self.save_book()
+
+
+	## -------------------------------------------------------
+	def complete_append(self, text, line, begidx, endidx):
+		"""
+		Autocomplete for the create types
+		"""
+
+		try:
+			position = line.split(' ').index(text)
+		except ValueError:
+			position = -1
+
+		if position == 1:
+			return []
+
+		if position == 2:
+			if not text:
+				completions = definitions.job_types
+			else:
+				completions = [item for item in definitions.job_types if item.startswith(text)]
+
+		return completions
 
 
 	## -------------------------------------------------------
@@ -339,6 +410,8 @@ class CommandLine(Cmd):
 		"""
 		Autocomplete for the get arguments
 		"""
+
+		completions = []
 
 		## Get argument position
 		try:
@@ -825,7 +898,7 @@ class CommandLine(Cmd):
 					navigable.previous.current = True
 					navigable.previous.next = None
 	
-			if not hasattr(navigable, 'command'):
+			if not navigable.level == 3:
 				try:
 					shutil.rmtree(navigable.path)
 				except OSError:

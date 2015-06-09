@@ -47,6 +47,7 @@ class Navigable(list):
 			'parent',
 			'private',
 			'sort_by_time',
+			'sort_by_index',
 			'append',
 			'count',
 			'extend',
@@ -203,6 +204,17 @@ class Navigable(list):
 
 
 	## --------------------------------------------------------
+	def sort_by_index(self):
+		"""
+		sort the children by modified time
+		"""
+
+		self.sort(key=lambda navigable: navigable.index*(2-navigable.hide))
+		for i, navigable in enumerate(self):
+			navigable.index = i
+
+
+	## --------------------------------------------------------
 	def ls(self, locator='', option=''):
 		"""
 		lists information about the children
@@ -222,8 +234,11 @@ class Navigable(list):
 				self.info()
 				return
 	
-			## sorting items to list by time
-			self.sort_by_time()
+			## sorting items to list by time, unless it is a chain in which the order is determined by what feed into what
+			if self.level == 1:
+				self.sort_by_index()
+			else:
+				self.sort_by_time()
 	
 			## figure out path to print
 			current_navigable_for_path = self
@@ -275,7 +290,10 @@ class Navigable(list):
 					continue
 		
 				## sorting items to list by time
-				current_navigable.sort_by_time()
+				if current_navigable.level == 1:
+					current_navigable.sort_by_index()
+				else:
+					current_navigable.sort_by_time()
 		
 				## figure out path to print
 				current_navigable_for_path = current_navigable
@@ -287,14 +305,27 @@ class Navigable(list):
 				log.info('In {0} : '.format(navigable_path))
 				log.info('-'*len(current_navigable[0].legend_string))
 				log.info(current_navigable[0].legend_string)
-				log.info('- '*(len(current_navigable[0].legend_string)/2))
-	
-	
+				log.info('- '*(1 + len(current_navigable[0].legend_string)/2))
+
+				## In case jobs are being browsed, make sure to print a new header if jobs are of a different type
+				if current_navigable[0].level == 2:
+					current_type = current_navigable[0].type
+
+
 				for j, navigable in enumerate(current_navigable):
 	
 					## skip hidden
 					if not option == 'hidden':
 						if navigable.hide < 0: continue
+
+					## In case the job type changes, print header again
+					if (navigable.level == 2):
+						if not navigable.type == current_type:
+							log.info('')
+							log.info(navigable.legend_string)
+							log.info('- '*(1 + len(navigable.legend_string)/2))
+							current_type = navigable.type
+
 	
 					## Gather arguments
 					args = []
@@ -307,7 +338,7 @@ class Navigable(list):
 	
 					log.info(navigable.ls_pattern[0].format(*args))
 	
-				log.info('-'*len(current_navigable[0].legend_string))
+				log.info('-'*len(current_navigable[-1].legend_string))
 
 
 	## --------------------------------------------------------
@@ -503,8 +534,6 @@ class Navigable(list):
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
 				navigable.open()
-
-
 
 
 	## --------------------------------------------------------

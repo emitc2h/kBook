@@ -162,11 +162,18 @@ class JobEventLoop(Job):
 				output_string = strings[-1][1:-1]
 				dataset_string = dataset_string.replace(input_string, output_string)
 
+			version_tag = 'v{0}.{1}'.format(self.parent.version, self.version)
+			if version_tag in dataset_string:
+				dataset_string = dataset_string.replace('.' + version_tag, '')
+
+			if self.parent.name in dataset_string:
+				dataset_string = dataset_string.replace('.' + self.parent.name, '')
+
 			outDS = 'user.{0}.{1}.{2}.{3}'.format(
 				self.parent.parent.preferences.user,
 				dataset_string,
 				self.parent.name,
-				'v{0}.{1}'.format(self.parent.version, self.version)
+				version_tag
 				)
 			submission.output_dataset = outDS
 

@@ -42,8 +42,8 @@ def gather(ask_for_path):
 
 	if use_root == 'y':
 		use_root = True
-		root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 5.34.18) > ')
-		if not root_version: root_version = '5.34.18'
+		root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 6.02.05) > ')
+		if not root_version: root_version = '6.02.05'
 
 	job_specific['use_root'] = use_root
 	job_specific['root_version'] = root_version
@@ -137,11 +137,18 @@ class JobPrun(Job):
 				output_string = strings[-1][1:-1]
 				dataset_string = dataset_string.replace(input_string, output_string)
 
+			version_tag = 'v{0}.{1}'.format(self.parent.version, self.version)
+			if version_tag in dataset_string:
+				dataset_string = dataset_string.replace('.' + version_tag, '')
+
+			if self.parent.name in dataset_string:
+				dataset_string = dataset_string.replace('.' + self.parent.name, '')
+
 			outDS = 'user.{0}.{1}.{2}.{3}'.format(
 				self.parent.parent.preferences.user,
 				dataset_string,
 				self.parent.name,
-				'v{0}.{1}'.format(self.parent.version, self.version)
+				version_tag
 				)
 			submission.output_dataset = outDS
 

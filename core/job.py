@@ -40,10 +40,12 @@ class Job(Versioned):
 			'construct_command',
 			'generate_output_dataset_names',
 			'shell',
+			'poll',
 			'job_specific',
 			'shell_command',
 			'start_shell',
-			'initialize'
+			'initialize',
+			'create_submissions'
 		]
 
 		self.level = 2
@@ -96,7 +98,7 @@ class Job(Versioned):
 		if isinstance(self.input_file_path, str):
 			self.create_submissions(self.read_input_file(self.input_file_path))
 		else:
-			self.create_submissions(self.job_specific['datasets'])
+			self.create_submissions_from_parents(self.job_specific['datasets'])
 		self.generate_output_dataset_names()
 
 
@@ -137,6 +139,28 @@ class Job(Versioned):
 
 
 	## -------------------------------------------------------
+	def create_submissions_from_parents(self, inputs):
+		"""
+		Create the submissions from a list of input datasets
+		"""
+
+		## Measure the number of submissions already in
+		nsubs_in = len(self)
+
+		## Compile list of current input datasets, to ensure no overlap
+		current_input_datasets = [submission.input_dataset for submission in self]
+
+		for i, input_submission in enumerate(inputs):
+			input_dataset = input_submission.output_dataset
+			if not input_dataset in current_input_datasets:
+				new_submission = Submission('submission{0}'.format(str(i + nsubs_in).zfill(4)), self, input_dataset.strip(' \n\t'), self.command, self.path)
+				new_submission.parent_submission = input_submission
+				self.append(new_submission)
+			else:
+				log.warning('Dataset {0} is already part of {1}'.format(input_dataset, self.name))
+
+
+	## -------------------------------------------------------
 	def create_directory(self):
 		"""
 		creates the job directory that contains everything
@@ -151,7 +175,8 @@ class Job(Versioned):
 
 		## Copy the files over
 		os.chdir(self.path)
-		shutil.copyfile(self.input_file_path, './input_file.txt')
+		if not self.input_file_path is None:
+			shutil.copyfile(self.input_file_path, './input_file.txt')
 
 
 	## -------------------------------------------------------
@@ -176,10 +201,7 @@ class Job(Versioned):
 
 		del self[:]
 
-		self.create_directory()
-		self.construct_command()
-		self.read_input_file()
-		self.generate_output_dataset_names()
+		self.initialize()
 
 
 	## ---------------------------------------------------------

@@ -28,6 +28,7 @@ class Submission(Navigable):
 		Navigable.__init__(self, name, parent, '')
 
 		self.path                 = path
+		self.parent_submission    = None
 		self.command              = command
 		self.input_dataset        = input_dataset
 		self.output_dataset       = ''
@@ -91,6 +92,12 @@ class Submission(Navigable):
 		"""
 		submits the one submission
 		"""
+
+		## Check the status of the source job, if there is one
+		if not self.parent_submission is None:
+			if not self.parent_submission.status == 4:
+				log.info('Parent submission is not finished, skipping.')
+				return
 
 		self.parent.start_shell()
 
@@ -252,6 +259,15 @@ class Submission(Navigable):
 			log.error('Status is not defined yet.')
 
 		self.modified_time = time.time()
+
+
+	## --------------------------------------------------------
+	def __repr__(self):
+		"""
+		Customize printout
+		"""
+
+		return '{0}/{1}/{2}'.format(self.parent.parent.name, self.parent.name, self.name)
 
 
 
