@@ -128,6 +128,7 @@ class JobPrun(Job):
 
 		output_name_rules = self.parent.parent.preferences.output_name_rules.split(' ')
 
+
 		for submission in self:
 
 			dataset_string = submission.input_dataset
@@ -148,7 +149,7 @@ class JobPrun(Job):
 				self.parent.parent.preferences.user,
 				dataset_string,
 				self.parent.name,
-				version_tag
+				version_tag,
 				)
 			submission.output_dataset = outDS
 

@@ -293,8 +293,26 @@ class CommandLine(Cmd):
 		_temp = __import__('job_{0}'.format(job_type.replace('-', '_')), globals(), locals(), ['gather'], -1)
 		job_specific = _temp.gather(self.ask_for_path)
 
+		## Ask for extension
+		extensions = self.book[index][-1].generate_output_dataset_extensions()
+		log.info('append : Select which output dataset extension you wish to use as input : ')
+		for i, extension in enumerate(extensions):
+			log.info('append : {0} : {1}'.format(i, extension))
+
+		try:
+			extension_index = int(raw_input('kBook : append : specify the index of the extension you want (select other if not available) : '))
+		except ValueError:
+			log.error('index provided is not an integer.')
+			return
+
+		if extension_index == len(extensions) - 1:
+			extension = raw_input('kBook : append : specify the extension : ')
+			job_specific['extension'] = extension
+		else:
+			job_specific['extension'] = extensions[extension_index]
+
 		## Additional panda options
-		panda_options = self.ask_for_panda_options()
+		panda_options = self.ask_for_panda_options('append')
 
 		## Actually append to the chain
 		self.book.append_to_chain(self.book[index], panda_options, job_specific)
@@ -458,17 +476,20 @@ class CommandLine(Cmd):
 		index = ''
 		attribute = ''
 		value = ''
-		if len(arguments) < 3:
+		if len(arguments) < 2:
 			log.error('provide an index, an attribute and a value.')
 			return
+		elif len(arguments) == 2:
+			index     = arguments[0]
+			attribute = arguments[1]
 		elif len(arguments) > 3:
-			index = arguments[0]
+			index     = arguments[0]
 			attribute = arguments[1]
-			value = ' '.join(arguments[2:])
+			value     = ' '.join(arguments[2:])
 		else:
-			index = arguments[0]
+			index     = arguments[0]
 			attribute = arguments[1]
-			value = arguments[2]
+			value     = arguments[2]
 
 		self.book.location.set(index, attribute, value)
 
@@ -1074,7 +1095,7 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
-	def ask_for_panda_options(self):
+	def ask_for_panda_options(self, command='create'):
 		"""
 		ask user to provide a path, with path autocomplete capabilities
 		"""
@@ -1088,7 +1109,7 @@ class CommandLine(Cmd):
 		readline.set_completer(panda_completer)
 
 
-		panda_options = raw_input('kBook : create : any additional panda options? > ')
+		panda_options = raw_input('kBook : {0} : any additional panda options? > '.format(command))
 
 		## Switch back to default completer
 		readline.set_completer_delims(default_delimiters)

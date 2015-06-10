@@ -236,7 +236,7 @@ class JobPathenaTrf(Job):
 				self.parent.parent.preferences.user,
 				dataset_string,
 				self.parent.name,
-				version_tag
+				version_tag,
 				)
 			submission.output_dataset = outDS
 

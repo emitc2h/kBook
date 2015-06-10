@@ -60,7 +60,7 @@ class Versioned(Navigable):
 		self.current = False
 		new_version.previous = self
 		new_version.next = None
-		new_version.path = self.path.replace('v{0}'.format(self.version), 'v{0}'.format(new_version.version))
+		new_version.path = self.path.replace('{0}_v{1}'.format(self.name, self.version), '{0}_v{1}'.format(self.name, new_version.version))
 
 		self.update()
 

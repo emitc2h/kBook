@@ -58,7 +58,7 @@ class Navigable(list):
 			'sort',
 			'legend_string',
 			'ls_pattern',
-			'index',
+			#'index',
 			'submit',
 			'kill',
 			'retry',
@@ -510,6 +510,9 @@ class Navigable(list):
 					return
 				navigable.close()
 
+		if not self.parent is None:
+			self.parent.update()
+
 
 		## --------------------------------------------------------
 	def open(self, locator=''):
@@ -535,6 +538,9 @@ class Navigable(list):
 					return
 				navigable.open()
 
+		if not self.parent is None:
+			self.parent.update()
+
 
 	## --------------------------------------------------------
 	def submit(self, locator=''):
@@ -558,6 +564,9 @@ class Navigable(list):
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
 				navigable.submit()
+
+		if not self.parent is None:
+			self.parent.update()
 
 
 	## --------------------------------------------------------
@@ -585,6 +594,9 @@ class Navigable(list):
 					return
 				navigable.retry()
 
+		if not self.parent is None:
+			self.parent.update()
+
 
 	## --------------------------------------------------------
 	def kill(self, locator=''):
@@ -610,6 +622,9 @@ class Navigable(list):
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
 				navigable.kill()
+
+		if not self.parent is None:
+			self.parent.update()
 
 
 	## ---------------------------------------------------------
@@ -650,6 +665,9 @@ class Navigable(list):
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
 				navigable.update()
+
+		if not self.parent is None:
+			self.parent.update()
 
 
 	## ---------------------------------------------------------

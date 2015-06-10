@@ -43,7 +43,8 @@ class Submission(Navigable):
 		self.url                  = ''
 		self.private += [
 			'compile_panda_options',
-			'parse_panda_status'
+			'parse_panda_status',
+			'generate_output_dataset_extensions'
 		]
 
 		self.level = 3
@@ -99,8 +100,6 @@ class Submission(Navigable):
 				log.info('Parent submission is not finished, skipping.')
 				return
 
-		self.parent.start_shell()
-
 		log.info('='*40)
 		log.info('Checking submission status ...')
 		self.update()
@@ -113,9 +112,9 @@ class Submission(Navigable):
 			log.info('    already submitted, finished.')
 			return
 
-		
+		## Start the shell
+		self.parent.start_shell()
 
-		## Finish constructing the command
 		if self.parent.type == 'eventloop':
 			command = self.command.format(submission=self.name)
 		else:
@@ -259,6 +258,29 @@ class Submission(Navigable):
 			log.error('Status is not defined yet.')
 
 		self.modified_time = time.time()
+
+
+	## --------------------------------------------------------
+	def generate_output_dataset_extensions(self):
+		"""
+		returns a list of extensions for output datasets
+		"""
+
+		extensions = []
+
+		output_datasets = []
+		try:
+			output_datasets = self.jedi_task_dict['outDS'].split(',')
+		except KeyError:
+			pass
+
+		for output_dataset in output_datasets:
+			output_dataset.strip(' \n\t')
+			if self.output_dataset in output_dataset:
+				extension = output_dataset[len(self.output_dataset):-1]
+				extensions.append(extension)
+
+		return extensions + ['other']
 
 
 	## --------------------------------------------------------

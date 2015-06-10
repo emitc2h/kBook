@@ -45,7 +45,9 @@ class Job(Versioned):
 			'shell_command',
 			'start_shell',
 			'initialize',
-			'create_submissions'
+			'create_submissions',
+			'create_submissions_from_parents',
+			'generate_output_dataset_extensions'
 		]
 
 		self.level = 2
@@ -151,7 +153,11 @@ class Job(Versioned):
 		current_input_datasets = [submission.input_dataset for submission in self]
 
 		for i, input_submission in enumerate(inputs):
+
 			input_dataset = input_submission.output_dataset
+			if 'extension' in self.job_specific.keys():
+				input_dataset += self.job_specific['extension']
+
 			if not input_dataset in current_input_datasets:
 				new_submission = Submission('submission{0}'.format(str(i + nsubs_in).zfill(4)), self, input_dataset.strip(' \n\t'), self.command, self.path)
 				new_submission.parent_submission = input_submission
@@ -298,6 +304,22 @@ class Job(Versioned):
 					print 'kBook : ', result,
 
 		return output
+
+
+	## ---------------------------------------------------------
+	def generate_output_dataset_extensions(self):
+		"""
+		generate a list of extensions characterizing the different output datasets created
+		"""
+
+		extensions = []
+
+		for submission in self:
+			submission_extensions = submission.generate_output_dataset_extensions()
+			if len(submission_extensions) > len(extensions):
+				extensions = submission_extensions
+
+		return extensions
 
 
 
