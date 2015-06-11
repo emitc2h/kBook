@@ -37,7 +37,7 @@ class Submission(Navigable):
 		self.finished_processes   = 0
 		self.total_processes      = 0
 		self.completion           = '0.0%'
-		self.status               = 0
+		self.status               = definitions.NOT_SUBMITTED
 		self.retry_count          = 0
 		self.retry_count_max      = 10
 		self.url                  = ''
@@ -96,7 +96,7 @@ class Submission(Navigable):
 
 		## Check the status of the source job, if there is one
 		if not self.parent_submission is None:
-			if not self.parent_submission.status == 4:
+			if not self.parent_submission.is_finished():
 				log.info('Parent submission is not finished, skipping.')
 				return
 
@@ -104,11 +104,11 @@ class Submission(Navigable):
 		log.info('Checking submission status ...')
 		self.update()
 
-		if self.status == 3:
+		if self.is_running():
 			log.info('    already submitted, currently running.')
 			return
 
-		if self.status == 4:	
+		if self.is_finished():	
 			log.info('    already submitted, finished.')
 			return
 
@@ -137,7 +137,7 @@ class Submission(Navigable):
 				for line_element in line_elements:
 					if 'jediTaskID' in line_element:
 						new_panda_job_id = int(line_element.split('=')[-1])
-				if self.status == 0:
+				if self.is_not_submitted():
 					if self.jedi_task_dict is None:
 						self.jedi_task_dict = {}
 					self.jedi_task_dict['jediTaskID'] = new_panda_job_id
@@ -152,10 +152,10 @@ class Submission(Navigable):
 
 		if 'Done. No jobs to be submitted' in pout:
 			already_done = True
-			self.status = 4
+			self.status = definitions.FINISHED
 
 		if ('succeeded. new' in pout) and (not already_done):
-			self.status = 3
+			self.status = definitions.RUNNING
 
 		self.modified_time = time.time()
 
@@ -166,13 +166,13 @@ class Submission(Navigable):
 		Calls the grid to retry the submission
 		"""
 
-		if not self.status == 2: return
+		if not self.is_unfinished(): return
 		if self.retry_count >= self.retry_count_max: return
 
 		log.info('{0}retrying {1} ...'.format('    '*self.level, self.name))
 		Client.retryTask(self.jedi_task_dict['jediTaskID'], False)
 
-		self.status = 3
+		self.status = definitions.RUNNING
 		self.retry_count += 1
 
 		self.modified_time = time.time()
@@ -184,10 +184,9 @@ class Submission(Navigable):
 		Calls the grid to kill the submission
 		"""
 
-		#if self.status == 3:
 		log.info('{0}killing {1} ...'.format('    '*self.level, self.name))
 		Client.killTask(self.jedi_task_dict['jediTaskID'], False)
-		self.status = 1
+		self.status = definitions.CANCELLED
 
 		self.modified_time = time.time()
 
@@ -198,9 +197,9 @@ class Submission(Navigable):
 		Calls the grid to update the status of the submission
 		"""
 
-		if self.hide == -1: return
-		if self.status == 4: return
-		if self.status == 6: return
+		if self.is_hidden(): return
+		if self.is_finished(): return
+		if self.is_closed(): return
 
 		if not self.jedi_task_dict:
 			log.warning('{0}Not submitted yet, no jedi task ID.'.format('    '*self.level))

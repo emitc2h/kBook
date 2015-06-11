@@ -32,28 +32,13 @@ kbook_status_list = [
 ]
 
 ## =======================================================
-eventloop_prun_options = {
-	'--destSE'           : ('EL::Job::optGridDestSE', 'String'),
-	'--site'             : ('EL::Job::optGridSite', 'String'),
-	'--cloud'            : ('EL::Job::optGridCloud', 'String'),
-	'--rootVer'          : ('EL::Job::optRootVer', 'String'),
-	'--cmtConfig'        : ('EL::Job::optCmtConfig', 'String'),
-	'--excludedSite'     : ('EL::Job::optGridExcludedSite', 'String'),
-	'--nGBPerJob'        : ('EL::Job::optGridNGBPerJob', 'String'),
-	'--memory'           : ('EL::Job::optGridMemory', 'String'),
-	'--maxCpuCount '     : ('EL::Job::optGridMaxCpuCount', 'String'),
-	'--nFiles'           : ('EL::Job::optGridNFiles', 'Double'),
-	'--nFilesPerJob'     : ('EL::Job::optGridNFilesPerJob', 'Double'),
-	'--nJobs'            : ('EL::Job::optGridNJobs', 'Double'),
-	'--maxFileSize'      : ('EL::Job::optGridMaxFileSize', 'String'),
-	'--maxNFilesPerJob'  : ('EL::Job::optGridMaxNFilesPerJob', 'Double'),
-	'--tmpDir'           : ('EL::Job::optTmpDir', 'String'),
-	'--useChirpServer'   : ('EL::Job::optGridUseChirpServer', 'Double'),
-	'--express'          : ('EL::Job::optGridExpress', 'Double'),
-	'--noSubmit'         : ('EL::Job::optGridNoSubmit', 'Double'),
-	'--disableAutoRetry' : ('EL::Job::optGridDisableAutoRetry', 'Double'),
-	'--mergeOutput'      : ('EL::Job::optGridMergeOutput', 'Double'),
-}
+NOT_SUBMITTED = 0
+CANCELLED     = 1
+UNFINISHED    = 2
+RUNNING       = 3
+FINISHED      = 4
+ERROR         = 5
+CLOSED        = 6
 
 ## =======================================================
 kbook_status = [
@@ -119,4 +104,28 @@ kbook_status_from_jedi = {
 	'toretry'       : 3,
 	'toincexec'     : 3,
 	'rerefine'      : 3,
+}
+
+## =======================================================
+eventloop_prun_options = {
+	'--destSE'           : ('EL::Job::optGridDestSE', 'String'),
+	'--site'             : ('EL::Job::optGridSite', 'String'),
+	'--cloud'            : ('EL::Job::optGridCloud', 'String'),
+	'--rootVer'          : ('EL::Job::optRootVer', 'String'),
+	'--cmtConfig'        : ('EL::Job::optCmtConfig', 'String'),
+	'--excludedSite'     : ('EL::Job::optGridExcludedSite', 'String'),
+	'--nGBPerJob'        : ('EL::Job::optGridNGBPerJob', 'String'),
+	'--memory'           : ('EL::Job::optGridMemory', 'String'),
+	'--maxCpuCount '     : ('EL::Job::optGridMaxCpuCount', 'String'),
+	'--nFiles'           : ('EL::Job::optGridNFiles', 'Double'),
+	'--nFilesPerJob'     : ('EL::Job::optGridNFilesPerJob', 'Double'),
+	'--nJobs'            : ('EL::Job::optGridNJobs', 'Double'),
+	'--maxFileSize'      : ('EL::Job::optGridMaxFileSize', 'String'),
+	'--maxNFilesPerJob'  : ('EL::Job::optGridMaxNFilesPerJob', 'Double'),
+	'--tmpDir'           : ('EL::Job::optTmpDir', 'String'),
+	'--useChirpServer'   : ('EL::Job::optGridUseChirpServer', 'Double'),
+	'--express'          : ('EL::Job::optGridExpress', 'Double'),
+	'--noSubmit'         : ('EL::Job::optGridNoSubmit', 'Double'),
+	'--disableAutoRetry' : ('EL::Job::optGridDisableAutoRetry', 'Double'),
+	'--mergeOutput'      : ('EL::Job::optGridMergeOutput', 'Double'),
 }

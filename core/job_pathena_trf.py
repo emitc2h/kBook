@@ -210,35 +210,7 @@ class JobPathenaTrf(Job):
 		generate output dataset names for all submissions
 		"""
 
-		output_name_rules = self.parent.parent.preferences.output_name_rules.split(' ')
-
-		for submission in self:
-
-			dataset_string = submission.input_dataset
-			for rule in output_name_rules:
-				## Skip rules having to do with file types
-				if self.input_dataset_type in rule or self.output_dataset_type in rule: continue
-				strings = rule.split(':')
-				input_string  = strings[0][1:-1]
-				output_string = strings[-1][1:-1]
-				dataset_string = dataset_string.replace(input_string, output_string)
-
-			dataset_string = dataset_string.replace(self.input_dataset_type, self.output_dataset_type)
-
-			version_tag = 'v{0}.{1}'.format(self.parent.version, self.version)
-			if version_tag in dataset_string:
-				dataset_string = dataset_string.replace('.' + version_tag, '')
-
-			if self.parent.name in dataset_string:
-				dataset_string = dataset_string.replace('.' + self.parent.name, '')
-
-			outDS = 'user.{0}.{1}.{2}.{3}'.format(
-				self.parent.parent.preferences.user,
-				dataset_string,
-				self.parent.name,
-				version_tag,
-				)
-			submission.output_dataset = outDS
+		Job.generate_output_dataset_names(self, skip_datatype_rules=True)
 
 
 	## ---------------------------------------------------------
@@ -264,6 +236,27 @@ class JobPathenaTrf(Job):
 			self.shell_command('cd ../run')
 
 		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

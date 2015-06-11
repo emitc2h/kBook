@@ -11,6 +11,7 @@ import logging as log
 from pandatools import PsubUtils
 from submission import Submission
 from versioned import Versioned
+import definitions
 
 ## =======================================================
 class Job(Versioned):
@@ -27,7 +28,7 @@ class Job(Versioned):
 
 		Versioned.__init__(self, name, parent, '')
 
-		self.status           = 0
+		self.status           = definitions.NOT_SUBMITTED
 		self.type             = ''
 		self.path             = path
 		self.input_file_path  = input_file_path
@@ -101,7 +102,6 @@ class Job(Versioned):
 			self.create_submissions(self.read_input_file(self.input_file_path))
 		else:
 			self.create_submissions_from_parents(self.job_specific['datasets'])
-		self.generate_output_dataset_names()
 
 
 	## -------------------------------------------------------
@@ -138,6 +138,8 @@ class Job(Versioned):
 				self.append(Submission('submission{0}'.format(str(i + nsubs_in).zfill(4)), self, input_dataset.strip(' \n\t'), self.command, self.path))
 			else:
 				log.warning('Dataset {0} is already part of {1}'.format(input_dataset, self.name))
+
+		self.generate_output_dataset_names()
 
 
 	## -------------------------------------------------------
@@ -193,10 +195,42 @@ class Job(Versioned):
 
 
 	## -------------------------------------------------------
-	def generate_output_dataset_names(self):
+	def generate_output_dataset_names(self, skip_datatype_rules=False):
 		"""
 		must be implemented by the derived classes
 		"""
+
+		output_name_rules = self.parent.parent.preferences.output_name_rules.split(' ')
+
+		for submission in self:
+
+			dataset_string = submission.input_dataset
+
+			for rule in output_name_rules:
+				if skip_datatype_rules:
+					if self.input_dataset_type in rule or self.output_dataset_type in rule: continue
+				strings = rule.split(':')
+				input_string  = strings[0][1:-1]
+				output_string = strings[-1][1:-1]
+				dataset_string = dataset_string.replace(input_string, output_string)
+
+			if skip_datatype_rules:
+				dataset_string = dataset_string.replace(self.input_dataset_type, self.output_dataset_type)
+
+			version_tag = 'v{0}.{1}'.format(self.parent.version, self.version)
+			if version_tag in dataset_string:
+				dataset_string = dataset_string.replace('.' + version_tag, '')
+
+			if self.parent.name in dataset_string:
+				dataset_string = dataset_string.replace('.' + self.parent.name, '')
+
+			outDS = 'user.{0}.{1}.{2}.{3}'.format(
+				self.parent.parent.preferences.user,
+				dataset_string,
+				self.parent.name,
+				version_tag,
+				)
+			submission.output_dataset = outDS
 
 
 	## --------------------------------------------------------

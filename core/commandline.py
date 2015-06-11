@@ -806,10 +806,10 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
-	def do_dq2get(self, arg):
+	def do_downlaod(self, arg):
 		"""
-		dq2get <index> <status> : generates a dq2-get shell script in the kbook download directory only including submissions
-		                          with the specified status (leave empty for all)
+		downlaod <index> <status> : generates a dq2-get shell script in the kbook download directory only including submissions
+		                            with the specified status (leave empty for all)
 		"""
 
 		os.chdir(self.book.download_path)
@@ -825,6 +825,7 @@ class CommandLine(Cmd):
 		## Get the navigable
 		navigables = self.book.location.navigate(locator)
 		for i, navigable in navigables:
+			if navigable.hide < 0: continue
 			if i < 0:
 				log.error('{0} does not exist'.format(locator))
 				return

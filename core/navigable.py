@@ -31,7 +31,7 @@ class Navigable(list):
 		self.panda_options = panda_options
 		self.creation_time = time.time()
 		self.modified_time = time.time()
-		self.status        = 0
+		self.status        = definitions.NOT_SUBMITTED
 		self.comment       = ''
 		self.hide          = 1
 		self.private       = [
@@ -51,6 +51,7 @@ class Navigable(list):
 			'append',
 			'count',
 			'extend',
+			'level',
 			'insert',
 			'pop',
 			'remove',
@@ -66,7 +67,14 @@ class Navigable(list):
 			'evaluate_status',
 			'update',
 			'generate_list',
-			'list_of_attributes'
+			'list_of_attributes',
+			'is_not_submitted',
+			'is_cancelled',
+			'is_unfinished',
+			'is_running',
+			'is_finished',
+			'is_closed',
+			'is_hidden',
 			]
 
 		self.level = 0
@@ -496,7 +504,7 @@ class Navigable(list):
 		"""
 
 		if not locator:
-			self.status = 6
+			self.status = definitions.CLOSED
 			for navigable in self:
 				navigable.close()
 		elif locator == 'all':
@@ -521,8 +529,8 @@ class Navigable(list):
 		"""
 
 		if not locator:
-			if self.status == 6:
-				self.status = 0
+			if self.is_closed():
+				self.status = definitions.NOT_SUBMITTED
 			else:
 				log.error('{0} is already open'.format(self.name))
 			for navigable in self:
@@ -548,8 +556,8 @@ class Navigable(list):
 		Submit jobs
 		"""
 
-		if self.status == 6: return
-		if self.hide == -1: return
+		if self.is_closed(): return
+		if self.is_hidden(): return
 
 		if not locator:
 			for navigable in self:
@@ -565,9 +573,6 @@ class Navigable(list):
 					return
 				navigable.submit()
 
-		if not self.parent is None:
-			self.parent.update()
-
 
 	## --------------------------------------------------------
 	def retry(self, locator=''):
@@ -575,8 +580,8 @@ class Navigable(list):
 		Retry jobs
 		"""
 
-		if self.status == 6: return
-		if self.hide == -1: return
+		if self.is_closed(): return
+		if self.is_hidden(): return
 
 		log.debug('{0}retrying {1} ...'.format('    '*self.level, self.name))
 
@@ -594,9 +599,6 @@ class Navigable(list):
 					return
 				navigable.retry()
 
-		if not self.parent is None:
-			self.parent.update()
-
 
 	## --------------------------------------------------------
 	def kill(self, locator=''):
@@ -604,8 +606,8 @@ class Navigable(list):
 		Kill jobs
 		"""
 
-		if self.status == 6: return
-		if self.hide == -1: return
+		if self.is_closed(): return
+		if self.is_hidden(): return
 		
 		log.debug('{0}killing {1} ...'.format('    '*self.level, self.name))
 
@@ -623,9 +625,6 @@ class Navigable(list):
 					return
 				navigable.kill()
 
-		if not self.parent is None:
-			self.parent.update()
-
 
 	## ---------------------------------------------------------
 	def status_string(self):
@@ -642,8 +641,8 @@ class Navigable(list):
 		update the status
 		"""
 
-		if self.hide == -1: return
-		if self.status == 6: return
+		if self.is_closed(): return
+		if self.is_hidden(): return
 
 		if hasattr(self, 'version'):
 			log.info('{0}updating {1} v{2} ...'.format('    '*self.level, self.name, self.version))
@@ -665,9 +664,6 @@ class Navigable(list):
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
 				navigable.update()
-
-		if not self.parent is None:
-			self.parent.update()
 
 
 	## ---------------------------------------------------------
@@ -695,9 +691,6 @@ class Navigable(list):
 			return current_parent, values
 
 
-
-
-
 	## ---------------------------------------------------------
 	def evaluate_status(self):
 		"""
@@ -707,8 +700,9 @@ class Navigable(list):
 		if len(self) == 0:
 			return self.status
 		else:
-			minimum_status = 6
+			minimum_status = definitions.CLOSED
 			for navigable in self:
+				if navigable.is_hidden(): continue
 				navigable_status = navigable.evaluate_status()
 				if navigable_status < minimum_status:
 					minimum_status = navigable_status
@@ -716,6 +710,14 @@ class Navigable(list):
 			return self.status
 
 
+	## ---------------------------------------------------------
+	def is_not_submitted(self) : return self.status == definitions.NOT_SUBMITTED
+	def is_cancelled(self)     : return self.status == definitions.CANCELLED
+	def is_unfinished(self)    : return self.status == definitions.UNFINISHED
+	def is_running(self)       : return self.status == definitions.RUNNING
+	def is_finished(self)      : return self.status == definitions.FINISHED
+	def is_closed(self)        : return self.status == definitions.CLOSED
+	def is_hidden(self)        : return self.hide < 0
 
 
 
