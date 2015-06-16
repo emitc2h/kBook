@@ -806,7 +806,7 @@ class CommandLine(Cmd):
 
 
 	## -------------------------------------------------------
-	def do_downlaod(self, arg):
+	def do_download(self, arg):
 		"""
 		downlaod <index> <status> : generates a dq2-get shell script in the kbook download directory only including submissions
 		                            with the specified status (leave empty for all)
