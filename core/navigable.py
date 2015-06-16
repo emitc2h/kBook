@@ -59,7 +59,7 @@ class Navigable(list):
 			'sort',
 			'legend_string',
 			'ls_pattern',
-			#'index',
+			'index',
 			'submit',
 			'kill',
 			'retry',
@@ -503,6 +503,8 @@ class Navigable(list):
 		Close the navigable for further updates
 		"""
 
+		if self.is_hidden(): return
+
 		if not locator:
 			self.status = definitions.CLOSED
 			for navigable in self:
@@ -518,15 +520,14 @@ class Navigable(list):
 					return
 				navigable.close()
 
-		if not self.parent is None:
-			self.parent.update()
-
 
 		## --------------------------------------------------------
 	def open(self, locator=''):
 		"""
 		Close the navigable for further updates
 		"""
+
+		if self.is_hidden(): return
 
 		if not locator:
 			if self.is_closed():
@@ -545,9 +546,6 @@ class Navigable(list):
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
 				navigable.open()
-
-		if not self.parent is None:
-			self.parent.update()
 
 
 	## --------------------------------------------------------
@@ -641,29 +639,41 @@ class Navigable(list):
 		update the status
 		"""
 
-		if self.is_closed(): return
-		if self.is_hidden(): return
-
-		if hasattr(self, 'version'):
-			log.info('{0}updating {1} v{2} ...'.format('    '*self.level, self.name, self.version))
-		else:
-			log.info('{0}updating {1} ...'.format('    '*self.level, self.name))
+		if not (self.is_hidden() or self.is_closed()):
+			if hasattr(self, 'version'):
+				log.info('{0}updating {1} v{2} ...'.format('    '*self.level, self.name, self.version))
+			else:
+				log.info('{0}updating {1} ...'.format('    '*self.level, self.name))
 
 		if not locator:
+
+			if self.is_closed(): return
+			if self.is_hidden(): return
+
 			for navigable in self:
 				navigable.update()
 			self.evaluate_status()
+
+
 		elif locator == 'all':
 			for navigable in self:
 				navigable.update()
 			self.evaluate_status()
+
 		else:
 			navigables = self.navigate(locator)
 			for i, navigable in navigables:
 				if i < 0:
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
+
+				if navigable.is_closed(): continue
+				if navigable.is_hidden(): continue
+
 				navigable.update()
+
+		if not self.parent is None:
+			self.parent.evaluate_status()
 
 
 	## ---------------------------------------------------------
