@@ -53,12 +53,6 @@ class Job(Versioned):
 
 		self.level = 2
 
-		self.finished_processes = 0
-		self.total_processes    = 0
-		self.completion         = '0.0%'
-
-		self.completion_time_series = []
-
 		self.legend_string = 'index : status        : progress : version'
 		self.ls_pattern    = ('{0:<5} : {2:<22} : {2:<8} : {3:<5}', 'index', 'status', 'completion', 'version')
 
@@ -245,30 +239,6 @@ class Job(Versioned):
 
 
 	## ---------------------------------------------------------
-	def update(self, locator=''):
-		"""
-		Updates completion information
-		"""
-
-		Versioned.update(self, locator)
-
-		self.finished_processes   = 0
-		self.total_processes      = 0
-		raw_percentage            = 0.0
-		self.completion           = '0.0%'
-
-		for submission in self:
-			self.finished_processes += submission.finished_processes
-			self.total_processes += submission.total_processes
-
-		if not self.total_processes == 0:
-			raw_percentage  = float(self.finished_processes)/float(self.total_processes)
-			self.completion = '{0:.1%}'.format(raw_percentage)
-
-		self.completion_time_series.append((time.time(), raw_percentage))
-
-
-	## ---------------------------------------------------------
 	def start_shell(self):
 		"""
 		Start the job's shell
@@ -354,9 +324,3 @@ class Job(Versioned):
 				extensions = submission_extensions
 
 		return extensions
-
-
-
-
-
-		

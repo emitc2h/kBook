@@ -158,6 +158,7 @@ class JobPathenaTrf(Job):
 			for d in testarea_toplevel_dirs:
 				if d == 'InstallArea': continue
 				if d.startswith('.'): continue
+				if not os.path.isdir(os.path.join(self.testarea_path, d)): continue
 				if d == 'WorkArea':
 					shutil.copytree(os.path.join(self.testarea_path, d), os.path.join(self.path, d), ignore=ignore_patterns_root)
 				else:

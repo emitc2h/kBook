@@ -51,6 +51,9 @@ class CommandLine(Cmd):
 		Constructor
 		"""
 
+		## Record kBook directory path
+		self.path = os.getcwd()
+
 		## Greetings
 		log.info('='*40)
 		log.info('Welcome to kBook 2.0.0!')
@@ -1030,6 +1033,19 @@ class CommandLine(Cmd):
 			navigable.create_submissions(navigable.read_input_file(input_file_path))
 
 
+	## -------------------------------------------------------
+	def do_graph(self, arg):
+		"""
+		graph <index> : Creates a graph of the completion of the job vs. time, puts it in the kBook directory
+		"""
+
+		navigables = self.book.location.navigate(arg)
+		for i, navigable in navigables:
+			if i < 0:
+				log.error('No entry with index {0}'.format(arg))
+				return
+
+			navigable.make_completion_graph(self.path)
 
 
 	## -------------------------------------------------------

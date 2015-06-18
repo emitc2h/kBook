@@ -6,7 +6,7 @@
 ##               hierachy of other navigables           ##
 ##########################################################
 
-import time
+import time, os
 import logging as log
 from subprocess import Popen, PIPE
 import definitions
@@ -78,6 +78,11 @@ class Navigable(list):
 			]
 
 		self.level = 0
+
+		self.finished_processes   = 0
+		self.total_processes      = 0
+		self.completion         = '0.0%'
+		self.completion_time_series = []
 
 		self.legend_string = 'index : name'
 		self.ls_pattern    = ('{0:<5} : {1:<20}', 'index', 'name')
@@ -255,7 +260,7 @@ class Navigable(list):
 				navigable_path = current_navigable_for_path.parent.name + '/' + navigable_path
 				current_navigable_for_path = current_navigable_for_path.parent
 
-			log.info('In {0} : '.format(navigable_path))
+			log.info('in {0} : '.format(navigable_path))
 			log.info('-'*len(self[0].legend_string))
 			log.info(self[0].legend_string)
 			log.info('- '*(len(self[0].legend_string)/2))
@@ -310,7 +315,7 @@ class Navigable(list):
 					navigable_path = current_navigable_for_path.parent.name + '/' + navigable_path
 					current_navigable_for_path = current_navigable_for_path.parent
 	
-				log.info('In {0} : '.format(navigable_path))
+				log.info('in {0} : '.format(navigable_path))
 				log.info('-'*len(current_navigable[0].legend_string))
 				log.info(current_navigable[0].legend_string)
 				log.info('- '*(1 + len(current_navigable[0].legend_string)/2))
@@ -675,6 +680,21 @@ class Navigable(list):
 		if not self.parent is None:
 			self.parent.evaluate_status()
 
+		self.finished_processes   = 0
+		self.total_processes      = 0
+		raw_percentage            = 0.0
+		self.completion           = '0.0%'
+
+		for navigable in self:
+				self.finished_processes += navigable.finished_processes
+				self.total_processes += navigable.total_processes
+
+		if not self.total_processes == 0:
+			raw_percentage  = float(self.finished_processes)/float(self.total_processes)
+			self.completion = '{0:.1%}'.format(raw_percentage)
+
+			self.completion_time_series.append((time.time(), raw_percentage))
+
 
 	## ---------------------------------------------------------
 	def generate_list(self, attribute, locator='', status=None):
@@ -718,6 +738,67 @@ class Navigable(list):
 					minimum_status = navigable_status
 			self.status = minimum_status
 			return self.status
+
+
+	## ---------------------------------------------------------
+	def make_completion_graph(self, path):
+		"""
+		Generates a graph of the completion time
+		"""
+
+		try:
+			import ROOT
+		except ImportError:
+			log.error('ROOT is not setup. Please setup ROOT if you wish to make completion graphs.')
+			return
+
+		graph = ROOT.TGraph()
+
+		for i, datum in enumerate(self.completion_time_series):
+		    unix_time = datum[0]
+		    completion = datum[1]
+		
+		    graph.SetPoint(i, unix_time, completion*100.0)
+		
+		canvas = ROOT.TCanvas()
+		canvas.SetGrid(1,1)
+		
+		xaxis = graph.GetXaxis()
+		yaxis = graph.GetYaxis()
+		
+		xaxis.SetTitle('Time')
+		xaxis.SetTimeDisplay(1)
+		xaxis.SetTimeFormat('%a %H:%M')
+		xaxis.SetTitleSize(0.06)
+		xaxis.SetTitleOffset(0.7)
+		
+		yaxis.SetTitle('Completion [%]')
+		yaxis.SetTitleSize(0.06)
+		yaxis.SetTitleOffset(0.7)
+		
+		graph_name = '{chainname}.v{chainversion}-{jobname}.v{jobversion}'.format(chainname=self.parent.name, chainversion=self.parent.version, jobname=self.name, jobversion=self.version)
+
+		current_navigable_for_graph_name = self
+		graph_name = current_navigable_for_graph_name.name
+		while not current_navigable_for_graph_name.parent.name == 'book':
+			if hasattr(current_navigable_for_graph_name.parent, 'version'):
+				graph_name = '{0}.v{1}-{2}'.format(current_navigable_for_graph_name.parent.name, current_navigable_for_graph_name.parent.version, graph_name)
+			else:
+				graph_name = '{0}-{1}'.format(current_navigable_for_graph_name.parent.name, graph_name)
+			current_navigable_for_graph_name = current_navigable_for_graph_name.parent
+
+		graph.SetTitle(graph_name)
+		graph.SetLineColor(ROOT.TColor.GetColor('#1F78B4'))
+		graph.SetLineWidth(2)
+		graph.SetMarkerStyle(20)
+		graph.SetMarkerSize(1)
+
+		graph.SetMinimum(0)
+		graph.SetMaximum(100)
+		
+		graph.Draw('APL')
+		
+		canvas.Print(os.path.join(path, '{0}.png'.format(graph_name)))
 
 
 	## ---------------------------------------------------------
