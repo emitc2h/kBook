@@ -68,6 +68,7 @@ class Navigable(list):
 			'update',
 			'generate_list',
 			'list_of_attributes',
+			'make_completion_graph',
 			'is_not_submitted',
 			'is_cancelled',
 			'is_unfinished',
