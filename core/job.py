@@ -161,6 +161,8 @@ class Job(Versioned):
 			else:
 				log.warning('Dataset {0} is already part of {1}'.format(input_dataset, self.name))
 
+		self.generate_output_dataset_names()
+
 
 	## -------------------------------------------------------
 	def create_directory(self):

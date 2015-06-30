@@ -7,6 +7,7 @@
 ##########################################################
 
 import os, shutil, glob, subprocess, ConfigParser
+import logging as log
 from job import Job
 
 ## -------------------------------------------------------
@@ -90,13 +91,14 @@ class JobPathenaTrf(Job):
 		self.postexec            = self.job_specific['postexec']
 
 		self.private += [
-			'setup_athena'
+			'setup_athena',
+			'cleanup_config'
 		]
 
 		self.type         = 'pathena-trf'
 
-		self.legend_string = 'index : type         : input  : output : status        : progress : version'
-		self.ls_pattern    = ('{0:<5} : {1:<12} : {2:<6} : {3:<6} : {4:<22} : {5:<8} : {6:<5}', 'index', 'type', 'input_dataset_type', 'output_dataset_type', 'status', 'completion', 'version')
+		self.legend_string = 'index : type         : input  : output           : status        : progress : version'
+		self.ls_pattern    = ('{0:<5} : {1:<12} : {2:<6} : {3:<16} : {4:<22} : {5:<8} : {6:<5}', 'index', 'type', 'input_dataset_type', 'output_dataset_type', 'status', 'completion', 'version')
 
 		self.initialize()
 
@@ -139,7 +141,16 @@ class JobPathenaTrf(Job):
 
 			## Look up information in asetup.save.ini
 			conf = ConfigParser.ConfigParser()
-			conf.read(os.path.join(self.testarea_path, '.asetup.save.ini'))
+			try:
+				conf.read(os.path.join(self.testarea_path, '.asetup.save.ini'))
+			except ConfigParser.ParsingError:
+				log.warning('Cannot parse \'.asetup.save.ini\' file, Attempting clean-up...')
+				if not self.cleanup_config(conf):
+					log.error('Could not clean-up \'.asetup.save.ini\'. Try manually editing the file.')
+					return
+				log.info('Clean-up complete.')
+				conf.read(os.path.join(self.testarea_path, '.asetup.save.ini'))
+
 			binary_dir_name = conf.get('summary', 'CMTCONFIG')
 			self.athena_release  = conf.get('unassigned', 'unassigned')
 
@@ -163,6 +174,7 @@ class JobPathenaTrf(Job):
 					shutil.copytree(os.path.join(self.testarea_path, d), os.path.join(self.path, d), ignore=ignore_patterns_root)
 				else:
 					shutil.copytree(os.path.join(self.testarea_path, d), os.path.join(self.path, d), ignore=ignore_patterns)
+
 
 
 	## -------------------------------------------------------
@@ -235,6 +247,41 @@ class JobPathenaTrf(Job):
 
 			## Go to run directory
 			self.shell_command('cd ../run')
+
+
+	## ---------------------------------------------------------
+	def cleanup_config(self, configparser):
+		"""
+		Clean-up the .asetup.save.ini file from parsing errors
+		"""
+
+		successful_parse = False
+
+		while not successful_parse:
+			try:
+				configparser.read(os.path.join(self.testarea_path, '.asetup.save.ini'))
+				successful_parse = True
+
+			except ConfigParser.ParsingError as e:
+				line_number = int(str(e).split('\n')[-1].split()[1].rstrip(']:'))
+				f = open(os.path.join(self.testarea_path, '.asetup.save.ini'))
+				f_lines = f.readlines()
+				f.close()
+
+				if 'CMTCONFIG' in f_lines[line_number-1] or 'unassigned' in f_lines[line_number-1]:
+					log.error('    problematic line contains crucial information, cannot remove.')
+					return False
+
+				log.info('   removing line {0}: \'{1}\''.format(line_number, f_lines[line_number-1]))
+				f = open(os.path.join(self.testarea_path, '.asetup.save.ini'), 'w')
+				for line in f_lines:
+					if line == f_lines[line_number-1]: continue
+					f.write(line)
+				f.close()
+
+		return True
+
+
 
 		
 
