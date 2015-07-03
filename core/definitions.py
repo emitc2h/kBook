@@ -42,13 +42,24 @@ CLOSED        = 6
 
 ## =======================================================
 kbook_status = [
-	'\033[00mnot submitted\033[0m',  ## 0
+	'\033[00mnot submitted\033[0m', ## 0
 	'\033[35mcancelled\033[0m',     ## 1
 	'\033[33munfinished\033[0m',    ## 2
 	'\033[34mrunning\033[0m',       ## 3
 	'\033[32mfinished\033[0m',      ## 4
 	'\033[31merror\033[0m',         ## 5
 	'\033[90mclosed\033[0m'         ## 6
+]
+
+## =======================================================
+kbook_status_no_color = [
+	'not submitted', ## 0
+	'cancelled',     ## 1
+	'unfinished',    ## 2
+	'running',       ## 3
+	'finished',      ## 4
+	'error',         ## 5
+	'closed'         ## 6
 ]
 
 ## =======================================================

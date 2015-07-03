@@ -34,6 +34,7 @@ class Book(Navigable):
 		self.cwd              = ''
 		self.preferences      = preferences
 		self.location         = self
+		self.use_color        = True
 
 		self.private += [
 			'prepare',
@@ -126,6 +127,10 @@ class Book(Navigable):
 			if 'timeleft' in line:
 				if '00:00:00' in line: proxy_is_expired = True
 			log.debug('    ' + line)
+
+			if 'No credentials found!' in line:
+				proxy_is_expired = True
+
 		log.debug('')
 
 

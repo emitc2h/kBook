@@ -159,9 +159,10 @@ class CommandLine(Cmd):
 			log.info('Exiting.')
 			return
 
-
+		self.book.use_color = False
 		log.info('kBook running in script mode ...')
 		self.onecmd(arg)
+		self.book.use_color = True
 		self.do_exit('')
 
 

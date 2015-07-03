@@ -261,6 +261,8 @@ class Navigable(list):
 				navigable_path = current_navigable_for_path.parent.name + '/' + navigable_path
 				current_navigable_for_path = current_navigable_for_path.parent
 
+			book = current_navigable_for_path
+
 			log.info('in {0} : '.format(navigable_path))
 			log.info('-'*len(self[0].legend_string))
 			log.info(self[0].legend_string)
@@ -278,7 +280,10 @@ class Navigable(list):
 				args = []
 				for k in range(len(navigable.ls_pattern)-1):
 					if navigable.ls_pattern[k+1] == 'status':
-						args.append(definitions.kbook_status[navigable.status])
+						if book.use_color:
+							args.append(definitions.kbook_status[navigable.status])
+						else:
+							args.append(definitions.kbook_status_no_color[navigable.status])
 
 					else:
 						args.append(getattr(navigable, navigable.ls_pattern[k+1]))
@@ -315,6 +320,8 @@ class Navigable(list):
 				while not current_navigable_for_path.parent is None:
 					navigable_path = current_navigable_for_path.parent.name + '/' + navigable_path
 					current_navigable_for_path = current_navigable_for_path.parent
+
+				book = current_navigable_for_path
 	
 				log.info('in {0} : '.format(navigable_path))
 				log.info('-'*len(current_navigable[0].legend_string))
@@ -345,7 +352,10 @@ class Navigable(list):
 					args = []
 					for k in range(len(navigable.ls_pattern)-1):
 						if navigable.ls_pattern[k+1] == 'status':
-							args.append(definitions.kbook_status[navigable.status])
+							if book.use_color:
+								args.append(definitions.kbook_status[navigable.status])
+							else:
+								args.append(definitions.kbook_status_no_color[navigable.status])
 	
 						else:
 							args.append(getattr(navigable, navigable.ls_pattern[k+1]))
@@ -393,7 +403,7 @@ class Navigable(list):
 				if '__' in att: continue
 				if att in self.private: continue
 				if '_time' in att and not 'series' in att:
-					log.info('{0:<5} : {1:<23} = {2:<30}'.format(self.index, att, time.ctime(getattr(self, att))))
+					log.info('{0:<5} : {1:<23} = {2:<30} ({3})'.format(self.index, att, time.ctime(getattr(self, att)), getattr(self, att)))
 				else:
 					log.info('{0:<5} : {1:<23} = {2:<30}'.format(self.index, att, getattr(self, att)))
 			return
@@ -437,7 +447,7 @@ class Navigable(list):
 					return
 	
 				if '_time' in attribute and not 'series' in attribute:
-					log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, time.ctime(getattr(navigable, attribute))))
+					log.info('{0:<5} : {1:<23} = {2:<30} ({3})'.format(navigable.index, attribute, time.ctime(getattr(navigable, attribute)), getattr(navigable, attribute)))
 				else:
 					log.info('{0:<5} : {1:<23} = {2:<30}'.format(navigable.index, attribute, getattr(navigable, attribute)))
 
@@ -753,6 +763,8 @@ class Navigable(list):
 			log.error('ROOT is not setup. Please setup ROOT if you wish to make completion graphs.')
 			return
 
+		colors = [ROOT.kBlue-2, ROOT.kGreen-2, ROOT.kRed-2, ROOT.kCyan+2, ROOT.kOrange-3, ROOT.kViolet+2]
+
 		graph = ROOT.TGraph()
 
 		for i, datum in enumerate(self.completion_time_series):
@@ -769,16 +781,14 @@ class Navigable(list):
 		
 		xaxis.SetTitle('Time')
 		xaxis.SetTimeDisplay(1)
-		xaxis.SetTimeFormat('%a %H:%M')
-		xaxis.SetTitleSize(0.06)
+		xaxis.SetTimeFormat('%d/%m %H')
+		xaxis.SetTitleSize(0.05)
 		xaxis.SetTitleOffset(0.7)
 		
 		yaxis.SetTitle('Completion [%]')
 		yaxis.SetTitleSize(0.06)
 		yaxis.SetTitleOffset(0.7)
 		
-		graph_name = '{chainname}.v{chainversion}-{jobname}.v{jobversion}'.format(chainname=self.parent.name, chainversion=self.parent.version, jobname=self.name, jobversion=self.version)
-
 		current_navigable_for_graph_name = self
 		graph_name = current_navigable_for_graph_name.name
 		while not current_navigable_for_graph_name.parent.name == 'book':
@@ -792,12 +802,32 @@ class Navigable(list):
 		graph.SetLineColor(ROOT.TColor.GetColor('#1F78B4'))
 		graph.SetLineWidth(2)
 		graph.SetMarkerStyle(20)
-		graph.SetMarkerSize(1)
+		graph.SetMarkerSize(0.5)
 
 		graph.SetMinimum(0)
 		graph.SetMaximum(100)
 		
 		graph.Draw('APL')
+
+		if self.level == 1:
+			for i, job in enumerate(self):
+			    box = ROOT.TBox()
+			    #box.SetFillColorAlpha(colors[i%len(colors)], 0.45)
+			    box.SetFillColor(colors[i%len(colors)])
+			    box.SetFillStyle(3001)
+			    box.DrawBox(max(job.creation_time, self.completion_time_series[0][0]), 5+5*i, self.completion_time_series[-1][0], 9+5*i)
+
+			    line = ROOT.TLine()
+			    line.SetLineColorAlpha(colors[i%len(colors)], 0.45)
+			    line.SetNDC(False)
+			    line.DrawLine(max(job.creation_time, self.completion_time_series[0][0]), 5+5*i, max(job.creation_time, self.completion_time_series[0][0]), 100)
+			    
+			    tex = ROOT.TLatex()
+			    tex.SetTextColor(ROOT.kBlack)
+			    tex.SetTextAlign(30)
+			    tex.SetTextSize(0.03)
+			    tex.SetNDC(False)
+			    tex.DrawLatex(self.completion_time_series[-1][0] - 0.01*(self.completion_time_series[-1][0] - self.completion_time_series[0][0]), 5+5*i, job.name)
 		
 		canvas.Print(os.path.join(path, '{0}.png'.format(graph_name)))
 
