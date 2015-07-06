@@ -8,7 +8,7 @@
 
 import os, shutil, sys, subprocess, readline, pickle, time
 import logging as log
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, call
 from chain import Chain
 from preferences import Preferences
 from navigable import Navigable
