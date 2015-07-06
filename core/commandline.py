@@ -570,21 +570,8 @@ class CommandLine(Cmd):
 		               enters copy mode, in which the copied object can be modified before being recreated
 		"""
 
-		current_is_versioned = False
-		children_are_versioned   = False
-
-		try:
-			v = self.book.location.version
-			current_is_versioned = True
-		except AttributeError:
-			pass
-
-		try:
-			if len(self.book.location) > 0:
-				v = self.book.location[0].version
-				children_are_versioned = True
-		except AttributeError:
-			pass
+		current_is_versioned = hasattr(self.book.location, 'version')
+		children_are_versioned = hasattr(self.book.location[0], 'version')
 
 		if (not arg) and current_is_versioned:
 			spawn = self.book.location.copy()
@@ -592,7 +579,14 @@ class CommandLine(Cmd):
 				self.book.location.parent.append(spawn)
 				self.book.location = spawn
 				self.book.location.recreate()
+
 		elif arg and children_are_versioned:
+
+			## Make sure all subsequent jobs are versioned as well if in a chain
+			if self.book.location.level == 1:
+				lowest_index = min([int(index.split('-')[0]) for index in arg.split(',')])
+				arg = '{0}-{1}'.format(lowest_index, len([nav for nav in self.book.location if not nav.is_hidden()])-1)
+
 			navigables = self.book.location.navigate(arg)
 			for i, child in navigables:
 				if i < 0:

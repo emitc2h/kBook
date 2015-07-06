@@ -237,6 +237,27 @@ class Job(Versioned):
 
 		del self[:]
 
+		## Detect previous job in chain
+		job_index = None
+		print '- '*30
+		print self.name, self.version
+		print '---'*20
+		self.parent.sort_by_index()
+		for i, job in enumerate(self.parent):
+			print job.name, job.version
+			if (job.name == self.name) and (job.version == self.version):
+				job_index = i
+
+		print '---'*20
+
+		if not (job_index is None) and not (job_index == 0):
+			previous_job = self.parent[job_index - 1]
+			print previous_job.name, previous_job.version, job_index
+			self.job_specific['datasets'] = [submission for submission in previous_job.get_latest()]
+			print self.job_specific['datasets']
+
+		print '==='*20
+
 		self.initialize()
 
 

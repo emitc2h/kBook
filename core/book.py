@@ -222,6 +222,7 @@ class Book(Navigable):
 		crontab = self.acquire_crontab()
 
 		updated_crontab = open('crontab.tmp', 'w')
+
 		for line in crontab.split('\n'):
 			if not './kBook.py' in line :
 				if line:

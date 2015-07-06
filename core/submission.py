@@ -288,7 +288,11 @@ class Submission(Navigable):
 		Customize printout
 		"""
 
-		return '{0}/{1}/{2}'.format(self.parent.parent.name, self.parent.name, self.name)
+		return '{0}-v{1}/{2}-v{3}/{4}'.format(self.parent.parent.name,
+											self.parent.parent.version,
+											self.parent.name,
+											self.parent.version,
+											self.name)
 
 
 

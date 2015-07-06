@@ -34,6 +34,7 @@ class Navigable(list):
 		self.status        = definitions.NOT_SUBMITTED
 		self.comment       = ''
 		self.hide          = 1
+
 		self.private       = [
 			'rebuild_hierarchy',
 			'locate',
@@ -59,10 +60,10 @@ class Navigable(list):
 			'sort',
 			'legend_string',
 			'ls_pattern',
-			'index',
 			'submit',
 			'kill',
 			'retry',
+			'index',
 			'status_string',
 			'evaluate_status',
 			'update',
@@ -223,7 +224,7 @@ class Navigable(list):
 		sort the children by modified time
 		"""
 
-		self.sort(key=lambda navigable: navigable.index*(2-navigable.hide))
+		self.sort(key=lambda navigable: navigable.index + 100000*navigable.is_hidden())
 		for i, navigable in enumerate(self):
 			navigable.index = i
 
@@ -537,7 +538,7 @@ class Navigable(list):
 				navigable.close()
 
 
-		## --------------------------------------------------------
+	## --------------------------------------------------------
 	def open(self, locator=''):
 		"""
 		Close the navigable for further updates
@@ -613,6 +614,8 @@ class Navigable(list):
 					return
 				navigable.retry()
 
+		self.status = definitions.RUNNING
+
 
 	## --------------------------------------------------------
 	def kill(self, locator=''):
@@ -638,6 +641,8 @@ class Navigable(list):
 					log.error('{0} does not exist in {1}'.format(locator, self.name))
 					return
 				navigable.kill()
+
+		self.status = definitions.CANCELLED
 
 
 	## ---------------------------------------------------------

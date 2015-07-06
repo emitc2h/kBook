@@ -9,6 +9,7 @@
 import copy, os, time
 import logging as log
 from navigable import Navigable
+import definitions
 
 ## =======================================================
 class Versioned(Navigable):
@@ -58,9 +59,16 @@ class Versioned(Navigable):
 		self.next = new_version
 		self.hide = -1
 		self.current = False
+
 		new_version.previous = self
 		new_version.next = None
 		new_version.path = self.path.replace('{0}_v{1}'.format(self.name, self.version), '{0}_v{1}'.format(self.name, new_version.version))
+		
+		new_version.status = definitions.NOT_SUBMITTED
+		new_version.finished_processes   = 0
+		new_version.total_processes      = 0
+		new_version.completion         = '0.0%'
+		new_version.completion_time_series = []
 
 		self.update()
 

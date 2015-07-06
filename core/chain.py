@@ -95,7 +95,7 @@ class Chain(Versioned):
 		path = os.path.join(self.path, '{0}_v0'.format(new_job_name))
 
 		## Collect outputs of the previous job in the chain
-		inputs = [submission for submission in self[-1]]
+		inputs = [submission for submission in self[-1].get_latest()]
 		job_specific['datasets'] = inputs
 		input_file_path = None
 
