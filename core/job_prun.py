@@ -84,17 +84,7 @@ class JobPrun(Job):
 
 		self.initialize()
 
-
-	## --------------------------------------------------------
-	def create_directory(self):
-		"""
-		copy the script over
-		"""
-
-		Job.create_directory(self)
-		shutil.copyfile(self.script_path, os.path.join('.', self.script_name))
-
-		if self.additional_files:
+		if self.additional_files and (not '--extFile' in self.panda_options):
 
 			files = []
 
@@ -104,7 +94,17 @@ class JobPrun(Job):
 					files.append(file_name)
 					shutil.copyfile(ff, './{0}'.format(file_name))
 
-			self.panda_options += '--extFile={0}'.format(','.join(files))
+			self.panda_options += ' --extFile={0}'.format(','.join(files))
+
+
+	## --------------------------------------------------------
+	def create_directory(self):
+		"""
+		copy the script over
+		"""
+
+		Job.create_directory(self)
+		shutil.copyfile(self.script_path, os.path.join('.', self.script_name))
 
 
 	## --------------------------------------------------------

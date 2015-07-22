@@ -34,6 +34,7 @@ class Job(Versioned):
 		self.input_file_path  = input_file_path
 		self.job_specific     = job_specific
 		self.command          = ''
+		self.panda_options    = job_specific['panda_options']
 
 		self.private += [
 			'read_input_file',

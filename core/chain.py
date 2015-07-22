@@ -61,6 +61,7 @@ class Chain(Versioned):
 		path = os.path.join(self.path, 'job0000_v0')
 
 		job_type = job_specific['job_type']
+		job_specific['panda_options'] = panda_options
 
 		if job_type == 'prun':
 			new_job = JobPrun('job0000', self, path, input_file_path, job_specific)
@@ -73,8 +74,6 @@ class Chain(Versioned):
 
 		if job_type == 'eventloop':
 			new_job = JobEventLoop('job0000', self, path, input_file_path, job_specific)
-
-		new_job.panda_options = panda_options
 
 		self.append(new_job)
 
