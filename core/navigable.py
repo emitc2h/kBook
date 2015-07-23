@@ -286,6 +286,9 @@ class Navigable(list):
 						else:
 							args.append(definitions.kbook_status_no_color[navigable.status])
 
+					elif 'time' in navigable.ls_pattern[k+1]:
+						args.append(time.ctime(getattr(navigable, navigable.ls_pattern[k+1])))
+
 					else:
 						args.append(getattr(navigable, navigable.ls_pattern[k+1]))
 
@@ -327,7 +330,7 @@ class Navigable(list):
 				log.info('in {0} : '.format(navigable_path))
 				log.info('-'*len(current_navigable[0].legend_string))
 				log.info(current_navigable[0].legend_string)
-				log.info('- '*(1 + len(current_navigable[0].legend_string)/2))
+				log.info('- '*(len(current_navigable[0].legend_string)/2))
 
 				## In case jobs are being browsed, make sure to print a new header if jobs are of a different type
 				if current_navigable[0].level == 2:
@@ -345,7 +348,7 @@ class Navigable(list):
 						if not navigable.type == current_type:
 							log.info('')
 							log.info(navigable.legend_string)
-							log.info('- '*(1 + len(navigable.legend_string)/2))
+							log.info('- '*(len(navigable.legend_string)/2))
 							current_type = navigable.type
 
 	
@@ -358,6 +361,9 @@ class Navigable(list):
 							else:
 								args.append(definitions.kbook_status_no_color[navigable.status])
 	
+						elif 'time' in navigable.ls_pattern[k+1]:
+							args.append(time.ctime(getattr(navigable, navigable.ls_pattern[k+1])))
+
 						else:
 							args.append(getattr(navigable, navigable.ls_pattern[k+1]))
 	

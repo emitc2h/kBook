@@ -141,12 +141,12 @@ class Submission(Navigable):
 					if self.jedi_task_dict is None:
 						self.jedi_task_dict = {}
 					self.jedi_task_dict['jediTaskID'] = new_panda_job_id
-					self.url = 'http://bigpanda.cern.ch/jobs/?display_limit=100&jeditaskid={0}'.format(new_panda_job_id)
+					self.url = 'http://bigpanda.cern.ch/task/{0}/'.format(new_panda_job_id)
 				else:
 					self.past_jedi_task_dicts.append(self.jedi_task_dict)
 					self.jedi_task_dict = {}
 					self.jedi_task_dict['jediTaskID'] = new_panda_job_id
-					self.url = 'http://bigpanda.cern.ch/jobs/?display_limit=100&jeditaskid={0}'.format(new_panda_job_id)
+					self.url = 'http://bigpanda.cern.ch/task/{0}/'.format(new_panda_job_id)
 
 		log.info('Monitoring URL: {0}'.format(self.url))
 
@@ -210,7 +210,7 @@ class Submission(Navigable):
 		status, new_jedi_task_dict = Client.getJediTaskDetails(self.jedi_task_dict, True, True)
 		if not new_jedi_task_dict is None:
 			self.jedi_task_dict = new_jedi_task_dict
-			self.url = 'http://bigpanda.cern.ch/jobs/?display_limit=100&jeditaskid={0}'.format(self.jedi_task_dict['jediTaskID'])
+			self.url = 'http://bigpanda.cern.ch/task/{0}/'.format(self.jedi_task_dict['jediTaskID'])
 
 		try:
 			statistics = self.jedi_task_dict['statistics']

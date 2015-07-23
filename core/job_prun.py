@@ -42,11 +42,22 @@ def gather(ask_for_path):
 
 	if use_root == 'y':
 		use_root = True
-		root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 5.34.18) > ')
-		if not root_version: root_version = '5.34.18'
+		root_version = raw_input('kBook : create : prun : which ROOT version? (leave empty for default: 6.02.12-x86_64-slc6-gcc48-opt) > ')
+		if not root_version: root_version = '6.02.12-x86_64-slc6-gcc48-opt'
+	else:
+		use_root = False
 
 	job_specific['use_root'] = use_root
 	job_specific['root_version'] = root_version
+
+	## Use numpy, scipy and/or matplotlib?
+	use_advanced_python = raw_input('kBook : create : prun : Use numpy, scipy and/or matplotlib? (y/n) > ')
+	if use_advanced_python == 'y':
+		use_advanced_python = True
+	else:
+		use_advanced_python = False
+
+	job_specific['use_advanced_python'] = use_advanced_python
 
 	## Specify the name of the output files
 	job_specific['output'] = raw_input('kBook : create : prun : provide names of output files to be stored (comma-separated) > ')
@@ -113,11 +124,18 @@ class JobPrun(Job):
 		constructs a prun command
 		"""
 
-		self.command = 'prun --exec="python {script} %IN" '.format(script=self.script_name)
+		preexec = ''
+		if self.job_specific['use_advanced_python']:
+			preexec += 'export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase; '
+			preexec += 'source ${{ATLAS_LOCAL_ROOT_BASE}}/user/atlasLocalSetup.sh; '
+			preexec += 'source ${{ATLAS_LOCAL_ROOT_BASE}}/packageSetups/atlasLocalSFTSetup.sh  `showVersions sft --cmtConfig=x86_64-slc6-gcc48-opt | grep -i -e pyanalysis`; '
+
+		self.command = 'prun --exec="{preexec}python {script} %IN" '.format(preexec=preexec, script=self.script_name)
 		if self.use_root:
-			self.command += '--rootVer {root} '.format(root=self.root_version)
-		self.command += '--outputs {output} '.format(output=self.output)
-		self.command += '--inDS {input} --outDS {output}'
+			self.command += '--rootVer={root} '.format(root=self.root_version.split('-')[0])
+			self.command += '--cmtConfig={cmt} '.format(cmt='-'.join(self.root_version.split('-')[1:]))
+		self.command += '--outputs={output} '.format(output=self.output)
+		self.command += '--inDS={input} --outDS={output}'
 
 
 

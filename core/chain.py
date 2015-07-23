@@ -42,10 +42,12 @@ class Chain(Versioned):
 
 		self.level = 1
 
-		self.legend_string = 'index : name                      : status        : progress : version'
-		self.ls_pattern    = ('{0:<5} : {1:<25} : {2:<22} : {3:<8} : {4:<5}', 'index', 'name', 'status', 'completion', 'version')
+		self.legend_string = 'index : name                      : status        : progress : version : last modified             '
+		self.ls_pattern    = ('{0:<5} : {1:<25} : {2:<22} : {3:<8} : {4:<7} : {5:<15}', 'index', 'name', 'status', 'completion', 'version', 'modified_time')
 
 		self.create_job(input_file_path, job_specific, panda_options)
+
+
 
 
 	## --------------------------------------------------------
