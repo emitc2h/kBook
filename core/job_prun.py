@@ -103,7 +103,6 @@ class JobPrun(Job):
 				for ff in  glob.glob(additional_file):
 					file_name = os.path.basename(ff)
 					files.append(file_name)
-					shutil.copyfile(ff, './{0}'.format(file_name))
 
 			self.panda_options += ' --extFile={0}'.format(','.join(files))
 
@@ -116,6 +115,12 @@ class JobPrun(Job):
 
 		Job.create_directory(self)
 		shutil.copyfile(self.script_path, os.path.join('.', self.script_name))
+
+		if self.additional_files:
+			for additional_file in self.additional_files:
+				for ff in  glob.glob(additional_file):
+					file_name = os.path.basename(ff)
+					shutil.copyfile(ff, './{0}'.format(file_name))
 
 
 	## --------------------------------------------------------
