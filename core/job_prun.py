@@ -130,10 +130,13 @@ class JobPrun(Job):
 		"""
 
 		preexec = ''
-		if self.job_specific['use_advanced_python']:
-			preexec += 'export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase; '
-			preexec += 'source ${{ATLAS_LOCAL_ROOT_BASE}}/user/atlasLocalSetup.sh; '
-			preexec += 'source ${{ATLAS_LOCAL_ROOT_BASE}}/packageSetups/atlasLocalSFTSetup.sh  `showVersions sft --cmtConfig=x86_64-slc6-gcc48-opt | grep -i -e pyanalysis`; '
+		try:
+			if self.job_specific['use_advanced_python']:
+				preexec += 'export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase; '
+				preexec += 'source ${{ATLAS_LOCAL_ROOT_BASE}}/user/atlasLocalSetup.sh; '
+				preexec += 'source ${{ATLAS_LOCAL_ROOT_BASE}}/packageSetups/atlasLocalSFTSetup.sh  `showVersions sft --cmtConfig=x86_64-slc6-gcc48-opt | grep -i -e pyanalysis`; '
+		except KeyError:
+			self.job_specific['use_advanced_python'] = False
 
 		self.command = 'prun --exec="{preexec}python {script} %IN" '.format(preexec=preexec, script=self.script_name)
 		if self.use_root:
