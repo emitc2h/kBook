@@ -853,10 +853,11 @@ class CommandLine(Cmd):
 			for output_dataset_list in output_datasets:
 				for output_dataset in output_dataset_list.split(','):
 					if output_dataset:
+						scope = '.'.join(output_dataset.split('.')[:2])
 						if job.type == 'prun':
-							script.write('dq2-get {0}_{1}/\n'.format(output_dataset, job.output))
+							script.write('rucio download {0}:{1}_{2}/\n'.format(scope, output_dataset, job.output))
 						if job.type == 'taskid':
-							script.write('dq2-get {0}\n'.format(output_dataset))
+							script.write('rucio download {0}:{1}\n'.format(scope, output_dataset))
 	
 			script.close()
 			script_path = os.path.join(self.book.download_path, script_dir_name, script_name)
@@ -1159,6 +1160,7 @@ class CommandLine(Cmd):
 
 		self.book.save_preferences()
 		os.chdir(self.book.path)
+		print os.getcwd()
 		book_file = open('book.kbk.{0}'.format(self.session_start), 'w')
 		pickle.dump(self.book, book_file, pickle.HIGHEST_PROTOCOL)
 		book_file.close()
