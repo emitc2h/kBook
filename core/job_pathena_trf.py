@@ -138,6 +138,7 @@ class JobPathenaTrf(Job):
 			    asetup_save_lines[i] = '# ' + line
 			asetup_save_ini = open(os.path.join(self.testarea_path, '.asetup.save.ini'), 'w')
 			asetup_save_ini.writelines(asetup_save_lines)
+			asetup_save_ini.close()
 
 			## Look up information in asetup.save.ini
 			conf = ConfigParser.ConfigParser()

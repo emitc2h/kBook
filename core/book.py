@@ -258,8 +258,15 @@ class Book(Navigable):
 		try:
 			os.mkdir(chain_path)
 		except OSError:
-			log.error('Could not create chain with name {0}, another chain with the same name already exists.'.format(name))
-			return
+			log.error('create : Could not create chain with name {0}, another chain with the same name already exists.'.format(name))
+			answer = raw_input('kBook : create : Would you like to remove it? (y/n) > ')
+			if answer == 'y':
+				log.info('kBook : create : Erasing {0} and creating anew ...'.format(chain_path))
+				shutil.rmtree(chain_path)
+				os.mkdir(chain_path)
+			else:
+				log.info('kBook : create : Will not touch {0}. Select a different chain name.'.format(chain_path))
+				return
 
 
 		new_chain = Chain(name, self, panda_options, chain_path, input_file_path, job_specific)
