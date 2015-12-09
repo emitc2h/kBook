@@ -239,7 +239,7 @@ class JobPathenaTrf(Job):
 			self.shell_command('cd {0}'.format(self.path))
 
 			## Setup Athena
-			self.shell_command('asetup {0},here'.format(self.athena_release))
+			self.shell_command('source $AtlasSetup/scripts/asetup.sh {0},here'.format(self.athena_release))
 
 			## Compile?
 			if compile:

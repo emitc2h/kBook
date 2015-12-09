@@ -273,7 +273,7 @@ class Job(Versioned):
 		## Setup ATLAS
 		self.shell_command('export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase', silent=True)
 		self.shell_command('source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh', silent=True)
-		self.shell_command('localSetupPandaClient --noAthenaCheck', silent=True)
+		self.shell_command('lsetup panda root rucio', silent=True)
 
 		## Check that grid proxy is in order
 		pout_voms = self.shell_command('voms-proxy-info', silent=True)
