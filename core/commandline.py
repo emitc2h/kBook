@@ -1160,7 +1160,6 @@ class CommandLine(Cmd):
 
 		self.book.save_preferences()
 		os.chdir(self.book.path)
-		print os.getcwd()
 		book_file = open('book.kbk.{0}'.format(self.session_start), 'w')
 		pickle.dump(self.book, book_file, pickle.HIGHEST_PROTOCOL)
 		book_file.close()
