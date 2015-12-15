@@ -316,10 +316,10 @@ class CommandLine(Cmd):
 			job_specific['extension'] = extensions[extension_index]
 
 		## Additional panda options
-		panda_options = self.ask_for_panda_options('append')
+		job_specific['panda_options'] = self.ask_for_panda_options('append')
 
 		## Actually append to the chain
-		self.book.append_to_chain(self.book[index], panda_options, job_specific)
+		self.book.append_to_chain(self.book[index], job_specific)
 
 		self.save_book()
 

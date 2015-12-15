@@ -57,6 +57,16 @@ def gather(ask_for_path):
 		else:
 			break
 
+	## post-include commands
+	job_specific['postinclude'] = []
+	postinclude_substep = ''
+	while (not job_specific['postinclude']) or postinclude_substep:
+		postinclude_substep = raw_input('kBook : create : pathena-trf : Any postInclude substeps? (leave empty if none or no more) > ')
+		if postinclude_substep:
+			job_specific['postinclude'].append(postinclude_substep)
+		else:
+			break
+
 	## Additional transform options
 	job_specific['transform_options'] = raw_input('kBook : create : pathena-trf : Additional {0} options? > '.format(job_specific['transform_type']))
 
@@ -89,6 +99,7 @@ class JobPathenaTrf(Job):
 		self.output_dataset_type = self.job_specific['output_dataset_type']
 		self.preexec             = self.job_specific['preexec']
 		self.postexec            = self.job_specific['postexec']
+		self.postinclude         = self.job_specific['postinclude']
 
 		self.private += [
 			'setup_athena',
@@ -214,6 +225,13 @@ class JobPathenaTrf(Job):
 					self.command += '--postExec \'{postexec_substep}\' '.format(postexec_substep=postexec_substep)
 				else:
 					self.command += '\'{postexec_substep}\' '.format(postexec_substep=postexec_substep)
+
+		if self.postinclude:
+			for i, postinclude_substep in enumerate(self.postinclude):
+				if i == 0:
+					self.command += '--postInclude \'{postinclude_substep}\' '.format(postinclude_substep=postinclude_substep)
+				else:
+					self.command += '\'{postinclude_substep}\' '.format(postinclude_substep=postinclude_substep)
 
 		self.command += '" --inDS {input} --outDS {output}'
 

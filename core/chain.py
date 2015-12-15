@@ -81,7 +81,7 @@ class Chain(Versioned):
 
 
 	## ---------------------------------------------------------
-	def append_job(self, panda_options, job_specific):
+	def append_job(self, job_specific):
 		"""
 		Appends a new job to the chain, using the output files
 		of the previous job as the new input
@@ -115,10 +115,7 @@ class Chain(Versioned):
 		if job_type == 'eventloop':
 			new_job = JobEventLoop(new_job_name, self, path, input_file_path, job_specific)
 
-		## Pass the new panda options to the job
-		new_job.panda_options = panda_options
 		new_job.index = len(self)
-
 		self.append(new_job)
 
 

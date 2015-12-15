@@ -274,12 +274,12 @@ class Book(Navigable):
 
 
 	## --------------------------------------------------------
-	def append_to_chain(self, chain, panda_options, job_specific):
+	def append_to_chain(self, chain, job_specific):
 		"""
 		Append a new job to a chain
 		"""
 
-		chain.append_job(panda_options, job_specific)
+		chain.append_job(job_specific)
 
 		return
 
