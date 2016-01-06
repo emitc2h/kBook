@@ -178,7 +178,7 @@ class Navigable(list):
 						log.info('Invalid interval syntax')
 						return [(-1, self)]
 
-					if not (hi > lo):
+					if not (hi >= lo):
 						log.info('Intervals should be specified from smaller value to larger value. Ex: \'3-6\', not \'6-3\'.')
 						return [(-1, self)]
 
