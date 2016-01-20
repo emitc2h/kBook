@@ -262,7 +262,7 @@ class JobPathenaTrf(Job):
 			## Compile?
 			if compile:
 				self.shell_command('cd WorkArea/cmt')
-				self.shell_command('cmt config; source setup.sh; cmt bro gmake')
+				self.shell_command('cmt bro cmt config; source setup.sh; cmt bro gmake')
 
 			## Go to run directory
 			self.shell_command('cd ../run')

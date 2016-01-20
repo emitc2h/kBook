@@ -192,7 +192,7 @@ class CommandLine(Cmd):
 	## -------------------------------------------------------
 	def do_create(self, arg):
 		"""
-		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'taskid\', etc.
+		create <type> <name> : Create a new chain named name. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'pathena-algo\', \'taskid\'.
 		"""
 
 		## Interpret arguments
@@ -253,7 +253,7 @@ class CommandLine(Cmd):
 	## -------------------------------------------------------
 	def do_append(self, arg):
 		"""
-		append <index> <type> : Append a new job to an existing chain of index <index> and of type <type>. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'taskid\', etc.
+		append <index> <type> : Append a new job to an existing chain of index <index> and of type <type>. Possible types are \'prun\', \'eventloop\', \'pathena-trf\', \'pathena-algo\', \'taskid\'.
 		"""
 
 		## Interpret arguments, and argument testing

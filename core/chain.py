@@ -12,6 +12,7 @@ import logging as log
 from job_prun import JobPrun
 from job_taskid import JobTaskID
 from job_pathena_trf import JobPathenaTrf
+from job_pathena_algo import JobPathenaAlgo
 from job_eventloop import JobEventLoop
 from versioned import Versioned
 
@@ -74,6 +75,9 @@ class Chain(Versioned):
 		if job_type == 'pathena-trf':
 			new_job = JobPathenaTrf('job0000', self, path, input_file_path, job_specific)
 
+		if job_type == 'pathena-algo':
+			new_job = JobPathenaAlgo('job0000', self, path, input_file_path, job_specific)
+
 		if job_type == 'eventloop':
 			new_job = JobEventLoop('job0000', self, path, input_file_path, job_specific)
 
@@ -111,6 +115,9 @@ class Chain(Versioned):
 
 		if job_type == 'pathena-trf':
 			new_job = JobPathenaTrf(new_job_name, self, path, input_file_path, job_specific)
+
+		if job_type == 'pathena-algo':
+			new_job = JobPathenaAlgo(new_job_name, self, path, input_file_path, job_specific)
 
 		if job_type == 'eventloop':
 			new_job = JobEventLoop(new_job_name, self, path, input_file_path, job_specific)

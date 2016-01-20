@@ -17,6 +17,7 @@ job_types = [
 	'prun',
 	'taskid',
 	'pathena-trf',
+	'pathena-algo',
 	'eventloop'
 ]
 
