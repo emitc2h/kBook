@@ -367,7 +367,6 @@ class Navigable(list):
 						else:
 							args.append(getattr(navigable, navigable.ls_pattern[k+1]))
 	
-					print len(args)
 					log.info(navigable.ls_pattern[0].format(*args))
 	
 				log.info('-'*len(current_navigable[-1].legend_string))
