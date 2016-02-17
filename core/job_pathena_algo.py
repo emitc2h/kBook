@@ -70,9 +70,11 @@ class JobPathenaAlgo(Job):
         self.type         = 'pathena-algo'
 
         self.legend_string = 'index : type         : status        : progress : version'
-        self.ls_pattern    = ('{0:<5} : {1:<12} : {4:<22} : {5:<8} : {6:<5}', 'index', 'type', 'status', 'completion', 'version')
+        self.ls_pattern    = ('{0:<5} : {1:<12} : {2:<22} : {3:<8} : {4:<5}', 'index', 'type', 'status', 'completion', 'version')
 
         self.initialize()
+
+
 
 
     ## --------------------------------------------------------
@@ -203,6 +205,10 @@ class JobPathenaAlgo(Job):
             if compile:
                 self.shell_command('cd WorkArea/cmt')
                 self.shell_command('cmt bro cmt config; source setup.sh; cmt bro gmake')
+
+            ## Setup Athena again to fully take into account the newly created InstallArea
+            self.shell_command('cd {0}'.format(self.path))
+            self.shell_command('source $AtlasSetup/scripts/asetup.sh {0},here'.format(self.athena_release))
 
             ## Go to run directory
             self.shell_command('cd ../run')
