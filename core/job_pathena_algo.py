@@ -138,6 +138,8 @@ class JobPathenaAlgo(Job):
                 for name in names:
                     if '.root' in name:
                         names_to_be_ignored.append(name)
+                    if 'PoolFileCatalog' in name:
+                        names_to_be_ignored.append(name)
                 return names_to_be_ignored
 
             ## Copy the directories one by one, with tailored ignore factories

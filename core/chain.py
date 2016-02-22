@@ -37,8 +37,7 @@ class Chain(Versioned):
 		self.modified_time = time.time()
 		self.private += [
 			'create_job',
-			'append_job',
-			'panda_options',
+			'append_job'
 		]
 
 		self.level = 1
